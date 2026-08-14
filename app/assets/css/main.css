@@ -10,7 +10,14 @@
   --color-ink-70:           #56514B;
   --color-ink-45:           #8A837A;
   --color-terracotta:       #B44C1E;
-  --color-terracotta-dark:  #8F3A14;
+  /* Button hover. The design system's own token snippet calls this
+     --accent-hover, and every style-hover in the mockup uses it. */
+  --color-terracotta-dark:  #973D14;
+  /* Accent tint — avatars, tag chips and ::selection. #8F3A14 is the TEXT
+     colour on this tint, not the hover shade; conflating the two is what
+     the first draft of these tokens got wrong. */
+  --color-accent-tint:      #F3E3DA;
+  --color-accent-tint-fg:   #8F3A14;
 
   /* Status — hue always paired with the word, never colour alone */
   --color-pending-fg:  #8A5A08;  --color-pending-bg:  #FDF6E7;  --color-pending-br:  #EFDFBC;
@@ -29,7 +36,7 @@
 /* Seven named type styles — the system defines exactly these. */
 @layer components {
   .t-display { font-family: var(--font-display); font-size: 76px; line-height: 0.98; font-weight: 400; letter-spacing: -0.015em; }
-  .t-section { font-family: var(--font-display); font-size: 40px; line-height: 1.1;  font-weight: 400; }
+  .t-section { font-family: var(--font-display); font-size: 40px; line-height: 1.1;  font-weight: 400; letter-spacing: -0.01em; }
   .t-title   { font-family: var(--font-display); font-size: 26px; line-height: 1.25; font-weight: 400; }
   .t-lead    { font-family: var(--font-sans);    font-size: 19px; line-height: 1.65; }
   .t-body    { font-family: var(--font-sans);    font-size: 15px; line-height: 1.7; }
@@ -38,6 +45,8 @@
 }
 
 html, body { background: var(--color-paper); color: var(--color-ink); -webkit-font-smoothing: antialiased; }
+
+::selection { background: var(--color-accent-tint); }
 
 /* Terracotta focus ring everywhere — the design system's only focus treatment. */
 :focus-visible { outline: 2px solid var(--color-terracotta); outline-offset: 2px; }
