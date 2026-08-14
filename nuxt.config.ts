@@ -11,6 +11,14 @@ export default defineNuxtConfig({
   css: ['~/assets/css/main.css'],
   vite: { plugins: [tailwindcss()] },
 
+  fonts: {
+    families: [
+      { name: 'Instrument Serif', provider: 'google', weights: [400] },
+      { name: 'IBM Plex Sans', provider: 'google', weights: [400, 500, 600] },
+      { name: 'IBM Plex Mono', provider: 'google', weights: [400, 500] },
+    ],
+  },
+
   runtimeConfig: {
     public: {
       apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:8000/api',
