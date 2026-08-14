@@ -30,7 +30,7 @@ const id = useId()
       :id="id" :type="type" :value="modelValue" :maxlength="maxlength" :placeholder="placeholder"
       :aria-invalid="!!error" :aria-describedby="error ? `${id}-err` : undefined"
       class="rounded-control bg-sunken border px-3 h-[38px] t-body text-ink placeholder:text-ink-45"
-      :class="error ? 'border-rejected-br' : 'border-rule'"
+      :class="error ? 'border-error-border' : 'border-rule-strong'"
       @input="$emit('update:modelValue', ($event.target as HTMLInputElement).value)"
     >
 

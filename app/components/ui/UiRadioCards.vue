@@ -8,10 +8,12 @@ const name = useId()
     <label
       v-for="o in options" :key="o.value"
       class="flex gap-3 items-start rounded-control border p-3 cursor-pointer transition-colors"
-      :class="modelValue === o.value ? 'border-terracotta bg-card' : 'border-rule bg-sunken hover:bg-card'"
+      :class="modelValue === o.value
+        ? 'border-terracotta bg-radio-selected'
+        : 'border-rule-strong bg-card hover:border-ink'"
     >
       <input
-        type="radio" :name="name" :value="o.value" :checked="modelValue === o.value" class="mt-1 accent-[var(--color-terracotta)]"
+        type="radio" :name="name" :value="o.value" :checked="modelValue === o.value" class="mt-1 accent-terracotta"
         @change="$emit('update:modelValue', o.value)"
       >
       <span>

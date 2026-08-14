@@ -18,11 +18,12 @@ const id = useId()
     </div>
     <textarea
       :id="id" :value="modelValue" :rows="rows" :maxlength="maxlength" :aria-invalid="!!error"
+      :aria-describedby="error ? `${id}-err` : undefined"
       class="rounded-control bg-sunken border px-3 py-2 t-body text-ink"
-      :class="error ? 'border-rejected-br' : 'border-rule'"
+      :class="error ? 'border-error-border' : 'border-rule-strong'"
       @input="$emit('update:modelValue', ($event.target as HTMLTextAreaElement).value)"
     />
-    <p v-if="error" class="t-label text-rejected-fg">{{ error }}</p>
+    <p v-if="error" :id="`${id}-err`" class="t-label text-rejected-fg">{{ error }}</p>
     <p v-else-if="help" class="t-label text-ink-45">{{ help }}</p>
   </div>
 </template>

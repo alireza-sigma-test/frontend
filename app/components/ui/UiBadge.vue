@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Status } from '~/types/api'
-const props = defineProps<{ status: Status }>()
+defineProps<{ status: Status }>()
 
 const styles: Record<Status, string> = {
   pending:  'bg-pending-bg text-pending-fg border-pending-br',

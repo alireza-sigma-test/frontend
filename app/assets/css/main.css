@@ -5,7 +5,11 @@
   --color-paper:            #FBFAF8;
   --color-card:             #FFFFFF;
   --color-sunken:           #F4F1EC;
+  /* TWO neutral borders, not one. `rule` is structural (cards, dividers,
+     disabled); `rule-strong` is for interactive controls — inputs, selects,
+     textareas, the secondary button, radio cards. */
   --color-rule:             #E5E1DA;
+  --color-rule-strong:      #D3CEC5;
   --color-ink:              #1A1815;
   --color-ink-70:           #56514B;
   --color-ink-45:           #8A837A;
@@ -23,6 +27,12 @@
   --color-pending-fg:  #8A5A08;  --color-pending-bg:  #FDF6E7;  --color-pending-br:  #EFDFBC;
   --color-approved-fg: #2A5D45;  --color-approved-bg: #EDF4EF;  --color-approved-br: #C9DFD1;
   --color-rejected-fg: #8E2E29;  --color-rejected-bg: #FAEDEC;  --color-rejected-br: #E8CFCD;
+
+  /* A field in error needs a border that reads as invalid. The pale
+     `rejected-br` is the status-badge tone and barely registers. */
+  --color-error-border:     #C2564F;
+  /* Warm tint behind a selected radio card. */
+  --color-radio-selected:   #FDF6F2;
 
   --font-display: "Instrument Serif", Georgia, serif;
   --font-sans:    "IBM Plex Sans", Helvetica, Arial, sans-serif;
