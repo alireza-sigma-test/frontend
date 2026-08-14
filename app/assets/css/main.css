@@ -41,6 +41,11 @@
   --radius-badge:   2px;
   --radius-control: 4px;
   --radius-card:    6px;
+
+  /* The design system defines exactly two elevations: flat (the default —
+     a 1px rule does the separating) and lifted, for overlays only (menu,
+     modal, toast). Neutral-warm (ink-tinted), never blue. */
+  --shadow-lifted: 0 1px 2px rgb(26 24 21 / 4%), 0 8px 24px rgb(26 24 21 / 6%);
 }
 
 /* Seven named type styles — the system defines exactly these. */
