@@ -10,14 +10,26 @@ const range = (from: number, to: number) => Array.from({ length: to - from + 1 }
 </script>
 
 <template>
-  <div class="flex flex-col gap-1.5">
-    <div class="flex flex-col gap-1" role="radiogroup" aria-label="Rating">
+  <!-- Layout and ARIA match design-system.html's own canonical
+       `components/RatingInput.vue` reference (embedded in its x-dc script
+       block, not the rendered mockup): `.rating` is
+       `display:flex; align-items:center` — stars and readout side by
+       side, not stacked — and each star is `role="radio"` with
+       `:aria-checked`, inside a `role="radiogroup"` whose label is
+       `Rating out of ${max}`. role=radiogroup + aria-pressed (this
+       component's previous markup) is the toggle-button contract, not the
+       radio contract, and assistive tech won't read it as single-select.
+       The two-row split for max > 5 is this task's own requirement, not
+       in the (single-row) reference, so it's nested one level inside the
+       group rather than flattened. -->
+  <div class="flex items-center gap-3">
+    <div class="flex flex-col gap-1" role="radiogroup" :aria-label="`Rating out of ${max}`">
       <div v-for="(row, i) in rows" :key="i" class="flex gap-1">
         <button
-          v-for="n in range(row[0], row[1])" :key="n" type="button"
+          v-for="n in range(row[0], row[1])" :key="n" type="button" role="radio"
           class="text-2xl leading-none transition-colors"
           :class="n <= modelValue ? 'text-terracotta' : 'text-rule hover:text-ink-45'"
-          :aria-label="`${n} of ${max}`" :aria-pressed="n === modelValue"
+          :aria-checked="n === modelValue" :aria-label="`${n} of ${max}`"
           @click="emit('update:modelValue', n)"
         >★</button>
       </div>

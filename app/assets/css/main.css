@@ -34,6 +34,17 @@
   /* Warm tint behind a selected radio card. */
   --color-radio-selected:   #FDF6F2;
 
+  /* Dashed borders — the file dropzone and the "+ Create" tag affordance.
+     Neither `rule` (#E5E1DA) nor `rule-strong` (#D3CEC5) is an exact match
+     for the design's dashed-border colour; this is. */
+  --color-rule-dashed:      #C9C3B9;
+
+  /* File-type chip (the uploaded-PDF badge). Same literal values as
+     rejected-fg/bg/br today — the design system reuses that exact colour —
+     but kept as its own token family so retinting the Rejected status
+     colour later doesn't silently retint every file-type chip with it. */
+  --color-file-fg: #8E2E29; --color-file-bg: #FAEDEC; --color-file-br: #E8CFCD;
+
   --font-display: "Instrument Serif", Georgia, serif;
   --font-sans:    "IBM Plex Sans", Helvetica, Arial, sans-serif;
   --font-mono:    "IBM Plex Mono", ui-monospace, monospace;

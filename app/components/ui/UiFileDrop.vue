@@ -21,13 +21,14 @@ const mb = (b: number) => (b / 1024 / 1024).toFixed(1)
   <div class="flex flex-col gap-1.5">
     <label class="t-label text-ink">Slides or outline <span class="text-ink-45">optional</span></label>
 
-    <!-- Dropzone is an interactive control (click/drop target) -> border-rule-strong,
-         and the design system renders it at the card radius (6px), not the control
-         radius (4px) other inputs use. -->
+    <!-- The dropzone renders at the card radius (6px), not the control
+         radius (4px) other inputs use, and its resting dashed border is
+         `rule-dashed` (#C9C3B9) — a distinct, darker neutral from both
+         `rule` and `rule-strong`, exact to the design's dashed elements. -->
     <div
       v-if="!modelValue"
       class="rounded-card border border-dashed p-6 text-center transition-colors"
-      :class="dragging ? 'border-terracotta bg-card' : 'border-rule-strong bg-sunken'"
+      :class="dragging ? 'border-terracotta bg-card' : 'border-rule-dashed bg-sunken'"
       @dragover.prevent="dragging = true" @dragleave="dragging = false"
       @drop.prevent="dragging = false; accept($event.dataTransfer?.files[0])"
     >
@@ -42,11 +43,10 @@ const mb = (b: number) => (b / 1024 / 1024).toFixed(1)
     </div>
 
     <div v-else class="rounded-control border border-rule bg-card p-3 flex items-center gap-3">
-      <!-- The design system renders the "PDF" chip with the same fg/bg/border
-           triplet as its rejected-status badge (#8E2E29/#FAEDEC/#E8CFCD) -
-           an exact match to the rejected-* tokens, reused here for a file-type
-           chip rather than a status. -->
-      <span class="rounded-badge border border-rejected-br bg-rejected-bg text-rejected-fg t-eyebrow px-1.5 py-1">PDF</span>
+      <!-- Dedicated file-* tokens (currently the same hexes the design
+           reuses from its rejected-status badge), kept independent so a
+           future rejected-* retint doesn't silently follow here. -->
+      <span class="rounded-badge border border-file-br bg-file-bg text-file-fg t-eyebrow px-1.5 py-1">PDF</span>
       <span class="t-body text-ink flex-1 truncate">{{ modelValue.name }}</span>
       <span class="t-eyebrow text-ink-45">{{ mb(modelValue.size) }} MB of 4 MB</span>
       <button type="button" class="text-ink-45 hover:text-ink" aria-label="Remove file" @click="emit('update:modelValue', null)">✕</button>

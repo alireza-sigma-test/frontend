@@ -19,15 +19,24 @@ const matches = computed(() => {
     .slice(0, 6)
 })
 
-// Offer creation only when nothing existing matches exactly.
+// Offer creation only when nothing existing matches, and nothing already
+// chosen matches either — case-insensitively, so typing "Testing" then
+// "testing" doesn't emit two near-identical new tags in one submission.
 const canCreate = computed(() => {
   const q = query.value.trim()
+  const qLower = q.toLowerCase()
   return q.length > 0 && q.length <= 40
-    && !props.suggestions.some(t => t.name.toLowerCase() === q.toLowerCase())
+    && !props.suggestions.some(t => t.name.toLowerCase() === qLower)
+    && !selectedLabels.value.some(t => t.label.toLowerCase() === qLower)
 })
 
 function add(value: number | string) {
-  if (!props.modelValue.includes(value)) emit('update:modelValue', [...props.modelValue, value])
+  // Case-insensitive guard for new names (ids are compared as-is; casing
+  // doesn't apply to a numeric id).
+  const alreadyChosen = typeof value === 'string'
+    ? selectedLabels.value.some(t => t.label.toLowerCase() === value.toLowerCase())
+    : props.modelValue.includes(value)
+  if (!alreadyChosen) emit('update:modelValue', [...props.modelValue, value])
   query.value = ''
 }
 function remove(value: number | string) {
@@ -48,7 +57,7 @@ function remove(value: number | string) {
         class="rounded-badge bg-accent-tint text-accent-tint-fg px-2 py-1 t-label inline-flex items-center gap-1.5"
       >
         {{ t.label }}
-        <button type="button" class="text-accent-tint-fg/70 hover:text-accent-tint-fg" :aria-label="`Remove ${t.label}`" @click="remove(t.value)">✕</button>
+        <button type="button" class="text-accent-tint-fg/65 hover:text-accent-tint-fg" :aria-label="`Remove ${t.label}`" @click="remove(t.value)">✕</button>
       </span>
 
       <input
@@ -62,7 +71,7 @@ function remove(value: number | string) {
       <button v-for="t in matches" :key="t.id" type="button" class="rounded-badge border border-rule bg-card px-2 py-0.5 t-label text-ink-70 hover:text-ink hover:border-ink" @click="add(t.id)">
         {{ t.name }}
       </button>
-      <button v-if="canCreate" type="button" class="rounded-badge border border-dashed border-rule-strong bg-card px-2 py-0.5 t-label text-terracotta" @click="add(query.trim())">
+      <button v-if="canCreate" type="button" class="rounded-badge border border-dashed border-rule-dashed bg-card px-2 py-0.5 t-label text-terracotta" @click="add(query.trim())">
         + Create “{{ query.trim() }}”
       </button>
     </div>
