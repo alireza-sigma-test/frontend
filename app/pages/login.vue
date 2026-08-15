@@ -28,17 +28,20 @@ async function submit() {
 
 <template>
   <div>
-    <p class="t-eyebrow text-ink-45">Proposal Review</p>
-    <h2 class="t-section text-ink mt-2">Sign in</h2>
+    <!-- Visually hidden: the tab row below is the visual heading (per the
+         design, which has no separate serif heading on this panel), but the
+         page still needs one real heading for assistive tech / doc outline. -->
+    <h2 class="sr-only">Sign in</h2>
 
-    <form class="mt-8 flex flex-col gap-4" @submit.prevent="submit">
+    <div class="flex gap-6 border-b border-rule mb-8">
+      <span class="t-label text-[14px] text-ink pb-3 border-b-2 border-terracotta -mb-px">Sign in</span>
+      <NuxtLink to="/register" class="t-label text-[14px] text-ink-45 hover:text-ink pb-3">Create account</NuxtLink>
+    </div>
+
+    <form class="flex flex-col gap-4" @submit.prevent="submit">
       <UiInput v-model="email" label="Email" type="email" required :error="errors.email?.[0]" />
       <UiInput v-model="password" label="Password" type="password" required :error="errors.password?.[0]" />
       <UiButton type="submit" size="lg" :disabled="busy">{{ busy ? 'Signing in…' : 'Sign in' }}</UiButton>
     </form>
-
-    <p class="t-body text-ink-45 mt-6">
-      No account? <NuxtLink to="/register" class="text-terracotta underline">Create one</NuxtLink>
-    </p>
   </div>
 </template>

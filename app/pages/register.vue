@@ -34,12 +34,21 @@ async function submit() {
 
 <template>
   <div>
-    <p class="t-eyebrow text-ink-45">Proposal Review</p>
-    <h2 class="t-section text-ink mt-2">Create account</h2>
+    <!-- Visually hidden: the tab row below is the visual heading (per the
+         design, which has no separate serif heading on this panel), but the
+         page still needs one real heading for assistive tech / doc outline. -->
+    <h2 class="sr-only">Create account</h2>
 
-    <form class="mt-8 flex flex-col gap-4" @submit.prevent="submit">
-      <UiInput v-model="form.name" label="Name" required :error="errors.name?.[0]" />
-      <UiInput v-model="form.email" label="Email" type="email" required :error="errors.email?.[0]" />
+    <div class="flex gap-6 border-b border-rule mb-8">
+      <span class="t-label text-[14px] text-ink pb-3 border-b-2 border-terracotta -mb-px">Create account</span>
+      <NuxtLink to="/login" class="t-label text-[14px] text-ink-45 hover:text-ink pb-3">Sign in</NuxtLink>
+    </div>
+
+    <form class="flex flex-col gap-[22px]" @submit.prevent="submit">
+      <div class="grid grid-cols-2 gap-4">
+        <UiInput v-model="form.name" label="Name" required :error="errors.name?.[0]" />
+        <UiInput v-model="form.email" label="Email" type="email" required :error="errors.email?.[0]" />
+      </div>
       <UiInput v-model="form.password" label="Password" type="password" required help="At least 8 characters." :error="errors.password?.[0]" />
       <UiInput v-model="form.password_confirmation" label="Confirm password" type="password" required />
 
@@ -54,9 +63,5 @@ async function submit() {
       <UiButton type="submit" size="lg" :disabled="busy">{{ busy ? 'Creating…' : 'Create account' }}</UiButton>
       <p class="t-label text-ink-45 text-center">By continuing you agree to the code of conduct.</p>
     </form>
-
-    <p class="t-body text-ink-45 mt-6">
-      Already have an account? <NuxtLink to="/login" class="text-terracotta underline">Sign in</NuxtLink>
-    </p>
   </div>
 </template>
