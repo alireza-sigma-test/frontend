@@ -1,14 +1,32 @@
 import { defineStore } from 'pinia'
 import type { Tag } from '~/types/api'
 
+// Module-level, not Pinia state: the in-flight request, shared across every
+// caller. `ProposalFilters` is legitimately mounted twice at once (the
+// mobile disclosure and the desktop sidebar — CSS decides which is
+// visible, both are real DOM instances), so both fire `fetch()` on mount
+// around the same tick. Without this, both would see an empty `items` and
+// issue their own `GET /tags`. Keeping the guard here — where the shared
+// resource actually lives — means any future caller gets the same
+// deduplication for free, rather than every call site having to remember
+// its own mount-time check.
+let inflight: Promise<void> | null = null
+
 export const useTagsStore = defineStore('tags', {
   state: () => ({ items: [] as Tag[] }),
   actions: {
     async fetch() {
-      // GET /tags wraps its array in `data` — a different envelope shape
-      // from the paginated `/proposals` response, per API.md.
-      const res = await useApi().get<{ data: Tag[] }>('/tags')
-      this.items = res.data
+      if (this.items.length) return
+      if (inflight) return inflight
+
+      inflight = (async () => {
+        // GET /tags wraps its array in `data` — a different envelope shape
+        // from the paginated `/proposals` response, per API.md.
+        const res = await useApi().get<{ data: Tag[] }>('/tags')
+        this.items = res.data
+      })().finally(() => { inflight = null })
+
+      return inflight
     },
   },
 })

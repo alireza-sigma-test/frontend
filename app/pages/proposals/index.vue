@@ -20,6 +20,20 @@ const resultLine = computed(() => hasFilters.value
   ? `${store.meta.total} of ${store.counts.all} proposals`
   : `${store.counts.all} proposals · newest first`)
 
+// A visually-hidden, always-mounted live region announces the same count
+// summary shown on screen — never the list itself — whenever a fetch
+// finishes because of something the user did (a filter change, Reset,
+// retry, a page change). The very first loading→loaded transition is the
+// page's own initial load, not a user action, so it's deliberately
+// skipped rather than announced.
+const announcement = ref('')
+let pastInitialLoad = false
+watch(() => store.loading, (loading) => {
+  if (loading) return
+  if (!pastInitialLoad) { pastInitialLoad = true; return }
+  announcement.value = store.error ? 'Could not load proposals.' : resultLine.value
+})
+
 const activeTagSlugs = computed(() => {
   const raw = route.query.tags
   return typeof raw === 'string' ? raw.split(',').filter(Boolean) : []
@@ -78,6 +92,10 @@ watch(() => route.query.search, (v) => {
     </aside>
 
     <div class="flex-1 min-w-0">
+      <!-- Announces only the count, and only after a real, user-driven
+           change — see the `pastInitialLoad` guard above. -->
+      <p aria-live="polite" class="sr-only">{{ announcement }}</p>
+
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <div>
           <h1 class="t-section text-ink">Proposals</h1>

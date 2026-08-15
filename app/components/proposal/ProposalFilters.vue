@@ -60,18 +60,27 @@ const queryString = computed(() => {
   return `/api/proposals${parts.length ? `?${parts.join('&')}` : ''}`
 })
 
-onMounted(() => { if (!tags.items.length) tags.fetch() })
+// The store itself dedupes concurrent calls — this component is mounted
+// twice at once (mobile disclosure + desktop sidebar), so both copies call
+// this on mount.
+onMounted(() => { tags.fetch() })
 </script>
 
 <template>
   <div class="flex flex-col gap-9">
     <div>
       <p class="t-eyebrow text-ink-45 mb-4">Status</p>
+      <!-- Single-select, mutually exclusive — the same "which one am I
+           looking at" relationship as UiPagination's page buttons, which
+           this codebase already marks with aria-current rather than
+           aria-pressed. Not a real toggle: clicking the active one again
+           is a no-op, it never turns "off" on its own. -->
       <div class="flex flex-col gap-1">
         <button
           v-for="s in statusOptions" :key="s.value" type="button"
           class="flex justify-between items-center t-body px-2.5 py-2 rounded-control transition-colors text-left"
           :class="status === s.value ? 'bg-sunken text-ink' : 'text-ink-70 hover:bg-sunken'"
+          :aria-current="status === s.value ? 'true' : undefined"
           @click="setStatus(s.value)"
         >
           <span>{{ s.label }}</span>
@@ -82,6 +91,10 @@ onMounted(() => { if (!tags.items.length) tags.fetch() })
 
     <div>
       <p class="t-eyebrow text-ink-45 mb-4">Tags</p>
+      <!-- Multi-select, independent — each tag toggles on/off on its own
+           (OR semantics), which is exactly the toggle-button contract
+           aria-pressed describes, unlike the single-current Status list
+           above. -->
       <div class="flex flex-wrap gap-2">
         <button
           v-for="t in tags.items" :key="t.id" type="button"
@@ -89,6 +102,7 @@ onMounted(() => { if (!tags.items.length) tags.fetch() })
           :class="activeTags.includes(t.slug)
             ? 'bg-accent-tint text-accent-tint-fg border-transparent'
             : 'border-rule text-ink-70 hover:border-ink hover:text-ink'"
+          :aria-pressed="activeTags.includes(t.slug)"
           @click="toggleTag(t.slug)"
         >{{ t.name }}</button>
       </div>
