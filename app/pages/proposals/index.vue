@@ -129,7 +129,7 @@ watch(() => route.query.search, (v) => {
       </div>
 
       <div v-else-if="!store.items.length" class="bg-card border border-rule rounded-card px-8">
-        <div class="w-[38px] h-[38px] rounded-control border border-rule mx-auto mb-[18px]" aria-hidden="true" />
+        <div class="w-[38px] h-[38px] rounded-control border border-rule-mid mx-auto mb-[18px]" aria-hidden="true" />
         <UiEmptyState title="Nothing matches those filters" body="Try a shorter search term or clear a tag.">
           <UiButton variant="secondary" size="sm" @click="resetAll">Clear all filters</UiButton>
         </UiEmptyState>

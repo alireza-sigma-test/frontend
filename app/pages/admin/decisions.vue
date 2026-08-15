@@ -76,11 +76,33 @@ watch(() => store.loading, (loading) => {
     </div>
 
     <div v-else-if="!store.items.length" class="bg-card border border-rule rounded-card px-8 mt-8">
-      <div class="w-[38px] h-[38px] rounded-control border border-rule mx-auto mb-[18px]" aria-hidden="true" />
+      <div class="w-[38px] h-[38px] rounded-control border border-rule-mid mx-auto mb-[18px]" aria-hidden="true" />
       <UiEmptyState title="Nothing waiting" body="Every proposal has a decision." />
     </div>
 
-    <div v-else class="bg-card border border-rule rounded-card overflow-hidden mt-8">
+    <!-- Below `md`, a 5-column table with fixed action-button widths
+         doesn't reflow the way ProposalCard's grid does even with a
+         horizontal scroll — cards instead, one per queued proposal.
+         `ProposalStatusControl`, not `StatusControl`: Nuxt prefixes
+         nested-directory components with the folder name (same auto-prefix
+         gotcha [id].vue's comment already documents), and the table below
+         already uses the resolved name. -->
+    <div v-else-if="store.items.length" class="md:hidden mt-8 flex flex-col gap-3">
+      <UiCard v-for="p in store.items" :key="p.id">
+        <NuxtLink :to="`/proposals/${p.id}`" class="t-title text-ink">{{ p.title }}</NuxtLink>
+        <p class="t-eyebrow text-ink-45 mt-1">{{ p.ref }} · {{ p.author.name }}</p>
+        <div class="flex items-center gap-3 mt-3">
+          <UiBadge :status="p.status" />
+          <span v-if="p.average_rating !== null" class="t-label text-ink flex items-center gap-1.5">
+            <span class="text-terracotta" aria-hidden="true">★</span>{{ p.average_rating.toFixed(1) }}
+            <span class="t-eyebrow text-ink-45">{{ p.reviews_count }}</span>
+          </span>
+        </div>
+        <div v-if="p.can.change_status" class="mt-4"><ProposalStatusControl :proposal="p" @changed="load" /></div>
+      </UiCard>
+    </div>
+
+    <div v-if="store.items.length" class="hidden md:block bg-card border border-rule rounded-card overflow-hidden mt-8">
       <!-- The design's own mockup pins this at min-width:1240px — a dense
            5-column table with fixed action-button widths doesn't reflow to
            a phone width the way ProposalCard's grid does. Scroll the table

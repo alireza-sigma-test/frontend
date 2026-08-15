@@ -21,14 +21,23 @@ const range = (from: number, to: number) => Array.from({ length: to - from + 1 }
        radio contract, and assistive tech won't read it as single-select.
        The two-row split for max > 5 is this task's own requirement, not
        in the (single-row) reference, so it's nested one level inside the
-       group rather than flattened. -->
-  <div class="flex items-center gap-3">
+       group rather than flattened.
+
+       Outer gap is 14px (gap-3.5), not gap-3 (12px) — design-system.html:287
+       and app-screens.html:381 both render the star row and the "n / max"
+       readout with `gap: 14px`. Unfilled stars use the dedicated
+       `rule-mid` token (#D9D3CA), not `rule` (#E5E1DA): the canonical
+       `.rating__star` reference (design-system.html:669) and the mockup's
+       own star spans (design-system.html:288, app-screens.html:346/368)
+       all use #D9D3CA for the off state — a shade between `rule` and
+       `rule-strong` that was never tokenised until now. -->
+  <div class="flex items-center gap-3.5">
     <div class="flex flex-col gap-1" role="radiogroup" :aria-label="`Rating out of ${max}`">
       <div v-for="(row, i) in rows" :key="i" class="flex gap-1">
         <button
           v-for="n in range(row[0], row[1])" :key="n" type="button" role="radio"
           class="text-2xl leading-none transition-colors"
-          :class="n <= modelValue ? 'text-terracotta' : 'text-rule hover:text-ink-45'"
+          :class="n <= modelValue ? 'text-terracotta' : 'text-rule-mid hover:text-ink-45'"
           :aria-checked="n === modelValue" :aria-label="`${n} of ${max}`"
           @click="emit('update:modelValue', n)"
         >★</button>

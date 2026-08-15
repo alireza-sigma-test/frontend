@@ -47,7 +47,7 @@ const fileSize = (b: number) =>
        uses — UiEmptyState/UiErrorState render only the message and action,
        never the square or the state-tinted border themselves. -->
   <div v-else-if="notFound" class="bg-card border border-rule rounded-card px-8">
-    <div class="w-[38px] h-[38px] rounded-control border border-rule mx-auto mb-[18px]" aria-hidden="true" />
+    <div class="w-[38px] h-[38px] rounded-control border border-rule-mid mx-auto mb-[18px]" aria-hidden="true" />
     <UiEmptyState title="Proposal not found" body="It may have been removed, or it isn’t one of yours.">
       <!-- UiButton renders its own link when given `to` — nesting it inside
            a NuxtLink (as literally written in the brief) would put one
@@ -61,7 +61,14 @@ const fileSize = (b: number) =>
     <UiErrorState title="Couldn’t load this proposal" :body="error" @retry="load" />
   </div>
 
-  <div v-else-if="proposal" class="grid lg:grid-cols-[minmax(0,1fr)_380px] gap-10 lg:gap-9">
+  <!-- `grid-cols-[minmax(0,1fr)]` at the base breakpoint too, not just
+       `lg:` — with no column definition below `lg`, an implicit grid
+       track sizes to its widest item's content instead of the container's
+       actual width; the attachment card below was overflowing the 375px
+       viewport by ~32px because of exactly this (confirmed by bisecting
+       which sibling forced the track wide). `minmax(0, …)` gives the
+       track a real 0 floor so it clamps to available space instead. -->
+  <div v-else-if="proposal" class="grid grid-cols-[minmax(0,1fr)] lg:grid-cols-[minmax(0,1fr)_380px] gap-10 lg:gap-9">
     <div class="lg:border-r lg:border-rule lg:pr-14">
       <NuxtLink to="/proposals" class="t-label text-ink-45 hover:text-ink">‹ All proposals</NuxtLink>
 
@@ -96,9 +103,15 @@ const fileSize = (b: number) =>
            below — lighter ink-70 is for captions and previews elsewhere. -->
       <p class="t-body text-ink-85 mt-6 whitespace-pre-line max-w-[70ch]">{{ proposal.description }}</p>
 
+      <!-- `flex`, not `inline-flex`: an inline-flex box shrink-to-fits to
+           its content's natural width, which defeats the filename span's
+           `min-w-0` truncation and was the direct cause of the horizontal
+           overflow above — `flex` takes the full (grid-clamped) width
+           available, up to `max-w-[30rem]`, so the truncation has a real
+           width to truncate against. -->
       <a
         v-if="proposal.attachment" :href="proposal.attachment.url" target="_blank" rel="noopener"
-        class="mt-8 inline-flex items-center gap-3.5 rounded-control border border-rule bg-card px-4 py-3.5 max-w-[30rem] hover:border-ink transition-colors"
+        class="mt-8 flex items-center gap-3.5 rounded-control border border-rule bg-card px-4 py-3.5 max-w-[30rem] hover:border-ink transition-colors"
       >
         <!-- Same file-fg/bg/br chip ProposalCard already uses for the PDF
              badge — the brief's page snippet used a plain ink-45 label

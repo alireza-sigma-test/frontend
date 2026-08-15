@@ -24,8 +24,11 @@ defineProps<{ reviews: Review[]; maxRating: number }>()
           <span v-if="r.reviewer" class="t-label text-ink">{{ r.reviewer.name }}</span>
           <span v-else class="t-label text-ink-45">A reviewer</span>
 
+          <!-- Unfilled portion uses `rule-mid` (#D9D3CA), not `rule`
+               (#E5E1DA) — the design's dedicated star-off colour
+               (app-screens.html:346/368), matching UiRatingInput. -->
           <span v-if="r.rating !== undefined" class="t-label text-terracotta">
-            {{ '★'.repeat(r.rating) }}<span class="text-rule">{{ '★'.repeat(maxRating - r.rating) }}</span>
+            {{ '★'.repeat(r.rating) }}<span class="text-rule-mid">{{ '★'.repeat(maxRating - r.rating) }}</span>
           </span>
 
           <span class="flex-1" />

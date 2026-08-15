@@ -44,7 +44,14 @@ async function submit() {
 </script>
 
 <template>
-  <div class="grid lg:grid-cols-[minmax(0,1fr)_340px] gap-14">
+  <!-- `grid-cols-[minmax(0,1fr)]` at the base breakpoint, not only `lg:` —
+       see proposals/[id].vue for the concrete bug this pattern caused
+       there (an implicit, undefined track sizes to its widest item's
+       content rather than the container's actual width). Not currently
+       symptomatic on this page, but it's the same fragile shape and this
+       keeps the sizing intentional at every breakpoint rather than
+       accidental. -->
+  <div class="grid grid-cols-[minmax(0,1fr)] lg:grid-cols-[minmax(0,1fr)_340px] gap-14">
     <div>
       <p class="t-eyebrow text-ink-45">New proposal</p>
       <h1 class="t-section text-ink mt-3">Tell us about your talk</h1>

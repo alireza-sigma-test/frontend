@@ -48,7 +48,12 @@ async function submit() {
     </div>
 
     <form class="flex flex-col gap-[22px]" @submit.prevent="submit">
-      <div class="grid grid-cols-2 gap-4">
+      <!-- The design has no responsive fallback for this pair (a desktop
+           mockup, always 2 columns) — at 375px a literal grid-cols-2
+           squeezes both inputs to ~155px. Stacked below `sm` (640px),
+           matching the breakpoint admin/decisions.vue's header already
+           uses for a similar judgment call. -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <UiInput v-model="form.name" label="Name" required :error="errors.name?.[0]" />
         <UiInput v-model="form.email" label="Email" type="email" required :error="errors.email?.[0]" />
       </div>

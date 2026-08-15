@@ -5,10 +5,14 @@
   --color-paper:            #FBFAF8;
   --color-card:             #FFFFFF;
   --color-sunken:           #F4F1EC;
-  /* TWO neutral borders, not one. `rule` is structural (cards, dividers,
+  /* THREE neutral borders. `rule` is structural (cards, dividers,
      disabled); `rule-strong` is for interactive controls — inputs, selects,
-     textareas, the secondary button, radio cards. */
+     textareas, the secondary button, radio cards. `rule-mid` sits between
+     them — a dedicated shade the design uses for de-emphasised /
+     inactive marks (the empty-state icon square, an unfilled rating star)
+     that neither `rule` nor `rule-strong` is an exact match for. */
   --color-rule:             #E5E1DA;
+  --color-rule-mid:         #D9D3CA;
   --color-rule-strong:      #D3CEC5;
   --color-ink:              #1A1815;
   /* Reading copy — the full proposal description and review comments — is
