@@ -30,6 +30,19 @@ async function load() {
 
 onMounted(load)
 
+// A visually-hidden live region — this is the only data screen that had
+// none, so posting a review (the one action here) gave assistive tech no
+// feedback beyond the toast. `heading` is also where focus returns to:
+// the loading branch above unmounts this whole grid (including the review
+// form), so without this a keyboard/screen-reader user submitting a review
+// is dropped at <body> once the form they were just in is gone.
+const heading = ref<HTMLHeadingElement>()
+const announcement = useResultAnnouncer(
+  () => loading.value,
+  () => error.value ? 'Could not load this proposal.' : 'Proposal updated.',
+  () => heading.value?.focus(),
+)
+
 // The design's sample copy reads "2.4 MB", but a fixed MB unit renders the
 // seeded 231-byte attachment as "0.0 MB", which looks like an empty file.
 // Scale the unit so small attachments describe themselves honestly.
@@ -40,26 +53,20 @@ const fileSize = (b: number) =>
 </script>
 
 <template>
+  <p aria-live="polite" class="sr-only">{{ announcement }}</p>
+
   <UiCard v-if="loading"><UiSkeleton :lines="10" /></UiCard>
 
-  <!-- Both empty/error states below reproduce the icon-square + card
-       wrapper design-system.html:404-438 defines and index.vue already
-       uses — UiEmptyState/UiErrorState render only the message and action,
-       never the square or the state-tinted border themselves. -->
-  <div v-else-if="notFound" class="bg-card border border-rule rounded-card px-8">
-    <div class="w-[38px] h-[38px] rounded-control border border-rule-mid mx-auto mb-[18px]" aria-hidden="true" />
-    <UiEmptyState title="Proposal not found" body="It may have been removed, or it isn’t one of yours.">
-      <!-- UiButton renders its own link when given `to` — nesting it inside
-           a NuxtLink (as literally written in the brief) would put one
-           interactive element inside another. -->
-      <UiButton to="/proposals" variant="secondary" size="sm">Back to all proposals</UiButton>
-    </UiEmptyState>
-  </div>
+  <!-- UiEmptyState/UiErrorState own the card + icon square themselves —
+       see design-system.html:404-438. -->
+  <UiEmptyState v-else-if="notFound" title="Proposal not found" body="It may have been removed, or it isn’t one of yours.">
+    <!-- UiButton renders its own link when given `to` — nesting it inside
+         a NuxtLink (as literally written in the brief) would put one
+         interactive element inside another. -->
+    <UiButton to="/proposals" variant="secondary" size="sm">Back to all proposals</UiButton>
+  </UiEmptyState>
 
-  <div v-else-if="error" class="bg-card border border-rejected-br rounded-card px-8">
-    <div class="w-[38px] h-[38px] rounded-control border border-rejected-br bg-rejected-bg text-rejected-fg t-label flex items-center justify-center mx-auto mb-[18px]" aria-hidden="true">!</div>
-    <UiErrorState title="Couldn’t load this proposal" :body="error" @retry="load" />
-  </div>
+  <UiErrorState v-else-if="error" title="Couldn’t load this proposal" :body="error" @retry="load" />
 
   <!-- `grid-cols-[minmax(0,1fr)]` at the base breakpoint too, not just
        `lg:` — with no column definition below `lg`, an implicit grid
@@ -84,7 +91,9 @@ const fileSize = (b: number) =>
            seven, and t-section is already how screen 03's page heading —
            the same role, one screen over — was built, so this keeps that
            precedent rather than adding an eighth ad hoc size for an 8px gap. -->
-      <h1 class="t-section text-ink mt-3 max-w-[26ch]">{{ proposal.title }}</h1>
+      <!-- tabindex="-1": not in the tab order, only a programmatic focus
+           target for the post-save/retry reload (see `heading` above). -->
+      <h1 ref="heading" tabindex="-1" class="t-section text-ink mt-3 max-w-[26ch]">{{ proposal.title }}</h1>
 
       <div class="flex items-center gap-3 mt-4">
         <UiAvatar :initials="proposal.author.initials" />

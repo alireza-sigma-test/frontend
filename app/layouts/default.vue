@@ -2,7 +2,7 @@
 const auth = useAuthStore()
 
 // Display-only Title Case — `auth.role` stays the lowercase Role literal
-// other code compares against (isSpeaker/isReviewer/isAdmin, :roles metas).
+// other code compares against (isSpeaker/isAdmin, :roles metas).
 const roleLabel = computed(() => (auth.role ? auth.role.charAt(0).toUpperCase() + auth.role.slice(1) : ''))
 </script>
 

@@ -20,50 +20,20 @@ const resultLine = computed(() => hasFilters.value
   ? `${store.meta.total} of ${store.counts.all} proposals`
   : `${store.counts.all} proposals · newest first`)
 
-// A visually-hidden, always-mounted live region announces the same count
-// summary shown on screen — never the list itself — whenever a fetch
-// finishes because of something the user did (a filter change, Reset,
-// retry, a page change). The very first loading→loaded transition is the
-// page's own initial load, not a user action, so it's deliberately
-// skipped rather than announced.
-const announcement = ref('')
-let pastInitialLoad = false
-watch(() => store.loading, (loading) => {
-  if (loading) return
-  if (!pastInitialLoad) { pastInitialLoad = true; return }
-  announcement.value = store.error ? 'Could not load proposals.' : resultLine.value
-})
+// Announces only the count, and only after a real, user-driven change —
+// see useResultAnnouncer's own doc comment for the initial-load skip.
+const announcement = useResultAnnouncer(
+  () => store.loading,
+  () => store.error ? 'Could not load proposals.' : resultLine.value,
+)
 
-const activeTagSlugs = computed(() => {
-  const raw = route.query.tags
-  return typeof raw === 'string' ? raw.split(',').filter(Boolean) : []
-})
-const activeTagChips = computed(() => activeTagSlugs.value.map(slug => ({
+// Status/tags/search all live in the URL query — see useProposalFilters,
+// the single owner of that state shared with ProposalFilters.vue.
+const { activeTags, patchQuery, removeTag, resetAll } = useProposalFilters()
+const activeTagChips = computed(() => activeTags.value.map(slug => ({
   slug,
   name: tags.items.find(t => t.slug === slug)?.name ?? slug,
 })))
-
-function patchQuery(patch: Record<string, string | undefined>) {
-  const current: Record<string, string> = {}
-  for (const [k, v] of Object.entries(route.query)) {
-    if (typeof v === 'string' && v !== '') current[k] = v
-  }
-  const merged = { ...current, ...patch }
-  const query: Record<string, string> = {}
-  for (const [k, v] of Object.entries(merged)) {
-    if (v) query[k] = v
-  }
-  delete query.page
-  router.push({ query })
-}
-
-function removeTag(slug: string) {
-  patchQuery({ tags: activeTagSlugs.value.filter(s => s !== slug).join(',') })
-}
-
-function resetAll() {
-  router.push({ query: {} })
-}
 
 // Local copy of the search box so typing feels instant; debounced 300ms
 // before it becomes a URL change (and therefore a request). Re-synced from
@@ -78,6 +48,13 @@ watch(search, (v) => {
 watch(() => route.query.search, (v) => {
   search.value = typeof v === 'string' ? v : ''
 })
+// A pending debounce firing after the user has already navigated away would
+// patch the *destination* route's query instead — patchQuery reads
+// route.query at call time, and router.push({ query }) keeps whatever path
+// is current — silently adding `?search=…` to wherever they went next and
+// breaking the back button. Clear it on unmount so leaving mid-type can't
+// leak a stray query param onto the next page.
+onUnmounted(() => clearTimeout(searchTimer))
 </script>
 
 <template>
@@ -93,7 +70,7 @@ watch(() => route.query.search, (v) => {
 
     <div class="flex-1 min-w-0">
       <!-- Announces only the count, and only after a real, user-driven
-           change — see the `pastInitialLoad` guard above. -->
+           change — see useResultAnnouncer for the initial-load skip. -->
       <p aria-live="polite" class="sr-only">{{ announcement }}</p>
 
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
@@ -123,17 +100,11 @@ watch(() => route.query.search, (v) => {
         <UiCard v-for="n in 3" :key="n"><UiSkeleton :lines="4" /></UiCard>
       </div>
 
-      <div v-else-if="store.error" class="bg-card border border-rejected-br rounded-card px-8">
-        <div class="w-[38px] h-[38px] rounded-control border border-rejected-br bg-rejected-bg text-rejected-fg t-label flex items-center justify-center mx-auto mb-[18px]" aria-hidden="true">!</div>
-        <UiErrorState title="Couldn’t load proposals" :body="store.error" @retry="load" />
-      </div>
+      <UiErrorState v-else-if="store.error" title="Couldn’t load proposals" :body="store.error" @retry="load" />
 
-      <div v-else-if="!store.items.length" class="bg-card border border-rule rounded-card px-8">
-        <div class="w-[38px] h-[38px] rounded-control border border-rule-mid mx-auto mb-[18px]" aria-hidden="true" />
-        <UiEmptyState title="Nothing matches those filters" body="Try a shorter search term or clear a tag.">
-          <UiButton variant="secondary" size="sm" @click="resetAll">Clear all filters</UiButton>
-        </UiEmptyState>
-      </div>
+      <UiEmptyState v-else-if="!store.items.length" title="Nothing matches those filters" body="Try a shorter search term or clear a tag.">
+        <UiButton variant="secondary" size="sm" @click="resetAll">Clear all filters</UiButton>
+      </UiEmptyState>
 
       <div v-else class="flex flex-col gap-3.5">
         <ProposalCard v-for="p in store.items" :key="p.id" :proposal="p" />

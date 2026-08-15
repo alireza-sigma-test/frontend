@@ -67,6 +67,18 @@ async function submit() {
           :error="errors.description?.[0]"
         />
         <div>
+          <!-- `tags.failed` used to be written by the store and read
+               nowhere — a failed GET /tags degraded silently to "no
+               suggestions", which risked a speaker creating a duplicate
+               free-text tag instead of picking the existing one they meant.
+               The input itself still works on failure (free-text tags are
+               still valid), so it stays mounted; this just makes the
+               degradation visible with the same retry idiom other screens
+               use. -->
+          <div v-if="tags.failed" class="mb-1.5 flex items-center gap-3 flex-wrap">
+            <p class="t-label text-ink-45">Couldn’t load tag suggestions — you can still type to create one.</p>
+            <UiButton variant="secondary" size="sm" @click="tags.fetch()">Try again</UiButton>
+          </div>
           <UiTagInput v-model="form.tags" :suggestions="tags.items" />
           <p v-if="errors.tags?.[0]" class="t-label text-rejected-fg mt-1.5">{{ errors.tags[0] }}</p>
         </div>

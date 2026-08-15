@@ -74,11 +74,17 @@ client-side, so `/proposals/1` is not a file on disk. `make preview` uses
 - **Filters live in the URL.** `/proposals?search=…&tags=…&status=…` is
   shareable and the back button works; the search box is debounced 300 ms
   before it becomes a URL change (and therefore a request).
-- **Permissions come from the API, never from a role string.** Every
-  proposal carries `can: { edit, review, change_status }`, generated
-  server-side from the same policies that gate the mutating routes. The
-  client renders from `can`, it doesn't infer what a `speaker` or `admin`
-  should see.
+- **Per-proposal permissions come from the API; role only gates what's
+  offered.** Every proposal carries `can: { edit, review, change_status }`,
+  generated server-side from the same policies that gate the mutating
+  routes — the client renders every proposal-level action from `can`, never
+  by inferring what a `speaker` or `admin` should be allowed to do. Role
+  *does* gate route-level access — the nav links, the "Submit a proposal"
+  button, `middleware/role.ts` — but that's convenience only, deciding what's
+  *offered* rather than what's *possible*: the server enforces the same
+  rules independently either way (`ProposalPolicy::create` requires speaker,
+  `changeStatus` requires admin, regardless of what the client shows), so it
+  is authoritative in both cases.
 - **Validation is the server's job.** The client mirrors only the cheap,
   synchronous checks (required, length, PDF mime, 4 MB) so obviously-bad
   input never leaves the browser; the server's `422` is still authoritative
@@ -109,6 +115,13 @@ let a slow, stale response clobber a newer one; `stores/tags.ts` shares a
 single in-flight request across simultaneous mounts (the mobile filter
 disclosure and the desktop sidebar are both real, mounted-at-once instances).
 
+**One page deliberately skips the store layer.** `pages/proposals/[id].vue`
+holds `proposal`/`loading`/`notFound`/`error` as local `ref`s and calls
+`useApi()` directly, instead of going through a Pinia store like the other
+two data screens do — it fetches a single resource nobody else on the page
+shares, so there's no state to coordinate across components and a store
+would add a layer for nothing.
+
 ### Auth and role guards
 
 - `stores/auth.ts` holds the Sanctum token and user in memory, mirrored to
@@ -132,7 +145,8 @@ app/
   components/
     proposal/   ProposalCard, ProposalFilters, ReviewForm, ReviewList, StatusControl
     ui/         Buttons, inputs, cards, modal, toast, skeleton, pagination — the design-system primitives
-  composables/  useApi (HTTP), useToast (notifications)
+  composables/  useApi (HTTP), useToast (notifications), useProposalFilters
+                (URL-query filters), useResultAnnouncer (shared live region)
   layouts/      auth.vue (split marketing panel), default.vue (header + nav)
   middleware/   auth.global.ts (session gate), role.ts (per-page role gate)
   pages/        login, register, proposals/index, proposals/new, proposals/[id], admin/decisions
@@ -141,8 +155,9 @@ app/
   utils/        formErrors.ts (422 → field vs. toast), time.ts (relative timestamps)
 ```
 
-Five pages for five screens: sign-in/register, the review list, submit, the
-proposal detail with review posting, and the admin decision queue.
+Six page files for five screens — sign-in and register are one screen, two
+routes: the review list, submit, the proposal detail with review posting,
+and the admin decision queue round out the other four.
 
 ## Known limitation: concurrent status decisions
 
@@ -172,9 +187,10 @@ oversight, and it's why the gaps below are absences rather than stand-ins.
 - **No rating-distribution bars on the detail screen.** The average and
   review count render; the per-star breakdown doesn't, because the API has
   no `rating_distribution` field to source it from.
-- **No Edit control on a proposal.** `can.edit` is `true` for the author on
-  every proposal, but `PATCH /proposals/{id}` isn't among the API's 10 live
-  endpoints, so there's nothing for an edit button to call.
+- **No Edit control on a proposal.** `can.edit` is `true` for the author
+  while the proposal is still pending — the policy is owner *and* pending,
+  not owner alone — but `PATCH /proposals/{id}` isn't among the API's 10
+  live endpoints, so there's nothing for an edit button to call.
 - **The admin queue's counters come from `/proposals`' own `counts` block**,
   not a `/stats` endpoint — there isn't one. `counts` is unaffected by the
   queue's own status/sort filter, which is what makes it usable as a stable

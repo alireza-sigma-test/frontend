@@ -1,45 +1,18 @@
 <script setup lang="ts">
 // Status and tag filters live in the URL query, not component state, so a
 // filtered view is shareable and the back button restores it. This
-// component owns only `status` and `tags` — `search` is read here (for the
-// query-string preview) but written by the page, whose header holds the
-// search box per the design's actual screen-02 layout.
-const route = useRoute()
-const router = useRouter()
+// component owns only `status` and `tags` markup — `search` is read here
+// (for the query-string preview) but written by the page, whose header
+// holds the search box per the design's actual screen-02 layout.
+// useProposalFilters is the single owner of the URL-query read/write logic
+// itself, shared with pages/proposals/index.vue.
 const tags = useTagsStore()
 const proposals = useProposalsStore()
 
-const activeTags = computed(() => {
-  const raw = route.query.tags
-  return typeof raw === 'string' ? raw.split(',').filter(Boolean) : []
-})
-const status = computed(() => (typeof route.query.status === 'string' ? route.query.status : ''))
-const search = computed(() => (typeof route.query.search === 'string' ? route.query.search : ''))
-
-function patchQuery(patch: Record<string, string | undefined>) {
-  const current: Record<string, string> = {}
-  for (const [k, v] of Object.entries(route.query)) {
-    if (typeof v === 'string' && v !== '') current[k] = v
-  }
-  const merged = { ...current, ...patch }
-  const query: Record<string, string> = {}
-  for (const [k, v] of Object.entries(merged)) {
-    if (v) query[k] = v
-  }
-  // Any filter change returns to page 1.
-  delete query.page
-  router.push({ query })
-}
+const { activeTags, status, search, patchQuery, toggleTag } = useProposalFilters()
 
 function setStatus(value: string) {
   patchQuery({ status: value })
-}
-
-function toggleTag(slug: string) {
-  const next = activeTags.value.includes(slug)
-    ? activeTags.value.filter(s => s !== slug)
-    : [...activeTags.value, slug]
-  patchQuery({ tags: next.join(',') })
 }
 
 const statusOptions = computed(() => [
@@ -91,11 +64,19 @@ onMounted(() => { tags.fetch() })
 
     <div>
       <p class="t-eyebrow text-ink-45 mb-4">Tags</p>
+      <!-- `failed` used to be written by the store and read nowhere — a
+           failed GET /tags degraded silently to "no tag filter" with no way
+           for the user to know anything went wrong. Surface it with the
+           same retry idiom the page-level error states use. -->
+      <div v-if="tags.failed" class="flex items-center gap-3 flex-wrap">
+        <p class="t-body text-ink-45">Couldn’t load tags.</p>
+        <UiButton variant="secondary" size="sm" @click="tags.fetch()">Try again</UiButton>
+      </div>
       <!-- Multi-select, independent — each tag toggles on/off on its own
            (OR semantics), which is exactly the toggle-button contract
            aria-pressed describes, unlike the single-current Status list
            above. -->
-      <div class="flex flex-wrap gap-2">
+      <div v-else class="flex flex-wrap gap-2">
         <button
           v-for="t in tags.items" :key="t.id" type="button"
           class="rounded-badge px-2 py-1 t-label border transition-colors"

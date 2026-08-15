@@ -9,9 +9,8 @@ export const useAuthStore = defineStore('auth', {
   getters: {
     isAuthenticated: s => !!s.token,
     role: (s): Role | null => s.user?.role ?? null,
-    isSpeaker:  s => s.user?.role === 'speaker',
-    isReviewer: s => s.user?.role === 'reviewer',
-    isAdmin:    s => s.user?.role === 'admin',
+    isSpeaker: s => s.user?.role === 'speaker',
+    isAdmin:   s => s.user?.role === 'admin',
   },
 
   actions: {
@@ -38,7 +37,17 @@ export const useAuthStore = defineStore('auth', {
       if (!stored) return
       this.token = stored
       try { this.user = await useApi().get<User>('/me') }
-      catch { this.clear() }
+      catch (e) {
+        // Only a genuine 401 means the token itself is invalid — clear it.
+        // A 500, an offline blip or the API still booting must not sign the
+        // user out: useApi() already clears + redirects on a real 401 on
+        // every *other* request, so this only needs to handle the case
+        // where /me itself is what failed. Leaving the token in place on
+        // anything else lets the next authenticated request (or a plain
+        // refresh) re-derive the truth instead of stranding the user at
+        // /login with no way back short of re-entering credentials.
+        if ((e as ApiError).status === 401) this.clear()
+      }
     },
 
     set(token: string, user: User) {

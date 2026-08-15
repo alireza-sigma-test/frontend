@@ -1,8 +1,8 @@
 <script setup lang="ts">
 withDefaults(defineProps<{
   modelValue: string; label: string; required?: boolean; help?: string
-  error?: string; maxlength?: number; counter?: boolean; rows?: number
-}>(), { required: false, counter: false, rows: 8 })
+  error?: string; maxlength?: number; rows?: number
+}>(), { required: false, rows: 8 })
 
 defineEmits<{ 'update:modelValue': [string] }>()
 const id = useId()
@@ -10,12 +10,9 @@ const id = useId()
 
 <template>
   <div class="flex flex-col gap-1.5">
-    <div class="flex items-baseline justify-between">
-      <label :for="id" class="t-label text-ink">
-        {{ label }}<span v-if="required" class="text-terracotta"> *</span>
-      </label>
-      <span v-if="counter && maxlength" class="t-eyebrow text-ink-45">{{ modelValue.length }} / {{ maxlength }}</span>
-    </div>
+    <label :for="id" class="t-label text-ink">
+      {{ label }}<span v-if="required" class="text-terracotta"> *</span>
+    </label>
     <textarea
       :id="id" :value="modelValue" :rows="rows" :maxlength="maxlength" :aria-invalid="!!error"
       :aria-describedby="error ? `${id}-err` : undefined"
