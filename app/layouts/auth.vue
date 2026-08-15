@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen grid lg:grid-cols-2">
     <aside class="hidden lg:flex flex-col justify-center bg-sunken px-14 border-r border-rule">
-      <p class="t-eyebrow text-ink-45">Proposal Review</p>
+      <p class="t-eyebrow text-ink-70">Proposal Review</p>
       <h1 class="t-display text-ink mt-4">Good talks start as rough ideas.</h1>
       <p class="t-lead text-ink-70 mt-5 max-w-[46ch]">
         Submit a proposal, get read by real reviewers, and see exactly where it stands.

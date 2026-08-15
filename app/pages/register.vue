@@ -52,6 +52,7 @@ async function submit() {
       </div>
 
       <UiButton type="submit" size="lg" :disabled="busy">{{ busy ? 'Creating…' : 'Create account' }}</UiButton>
+      <p class="t-label text-ink-45 text-center">By continuing you agree to the code of conduct.</p>
     </form>
 
     <p class="t-body text-ink-45 mt-6">

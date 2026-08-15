@@ -67,7 +67,7 @@
   .t-lead    { font-family: var(--font-sans);    font-size: 19px; line-height: 1.65; }
   .t-body    { font-family: var(--font-sans);    font-size: 15px; line-height: 1.7; }
   .t-label   { font-family: var(--font-sans);    font-size: 13px; line-height: 1.5;  font-weight: 500; }
-  .t-eyebrow { font-family: var(--font-mono);    font-size: 12px; line-height: 1.4;  letter-spacing: 0.12em; text-transform: uppercase; }
+  .t-eyebrow { font-family: var(--font-mono);    font-size: 12px; line-height: 1.4;  letter-spacing: 0.14em; text-transform: uppercase; }
 }
 
 html, body { background: var(--color-paper); color: var(--color-ink); -webkit-font-smoothing: antialiased; }
