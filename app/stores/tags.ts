@@ -13,18 +13,26 @@ import type { Tag } from '~/types/api'
 let inflight: Promise<void> | null = null
 
 export const useTagsStore = defineStore('tags', {
-  state: () => ({ items: [] as Tag[] }),
+  state: () => ({ items: [] as Tag[], failed: false }),
   actions: {
     async fetch() {
       if (this.items.length) return
       if (inflight) return inflight
 
+      this.failed = false
       inflight = (async () => {
         // GET /tags wraps its array in `data` — a different envelope shape
         // from the paginated `/proposals` response, per API.md.
         const res = await useApi().get<{ data: Tag[] }>('/tags')
         this.items = res.data
-      })().finally(() => { inflight = null })
+      })()
+        // Settled here, deliberately: every concurrent caller adopts this one
+        // promise, so letting it reject raises one unhandled rejection per
+        // caller rather than one per failure. Tags are a filter affordance,
+        // not page content — losing them degrades to "no tag filter", which
+        // is why this resolves instead of propagating.
+        .catch(() => { this.failed = true })
+        .finally(() => { inflight = null })
 
       return inflight
     },
