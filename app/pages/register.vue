@@ -40,7 +40,7 @@ async function submit() {
     <h2 class="sr-only">Create account</h2>
 
     <div class="flex gap-6 border-b border-rule mb-8">
-      <span class="t-label text-[14px] text-ink pb-3 border-b-2 border-terracotta -mb-px">Create account</span>
+      <span aria-current="page" class="t-label text-[14px] text-ink pb-3 border-b-2 border-terracotta -mb-px">Create account</span>
       <NuxtLink to="/login" class="t-label text-[14px] text-ink-45 hover:text-ink pb-3">Sign in</NuxtLink>
     </div>
 
