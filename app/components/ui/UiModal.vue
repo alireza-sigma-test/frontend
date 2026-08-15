@@ -2,6 +2,9 @@
 const props = defineProps<{ open: boolean; title: string; body?: string }>()
 const emit = defineEmits<{ close: [] }>()
 const el = ref<HTMLDialogElement>()
+// Native <dialog> gives us the focus trap, Escape and focus restoration, but
+// not a name — without this the dialog is announced unlabelled.
+const titleId = useId()
 
 watch(() => props.open, (open) => {
   if (open) el.value?.showModal()
@@ -12,11 +15,12 @@ watch(() => props.open, (open) => {
 <template>
   <dialog
     ref="el"
+    :aria-labelledby="titleId"
     class="rounded-card border border-rule bg-card p-0 max-w-[34rem] w-full shadow-lifted backdrop:bg-ink/30 overflow-hidden"
     @close="emit('close')" @cancel.prevent="emit('close')"
   >
     <div class="p-6 pb-5">
-      <p class="t-title text-ink">{{ title }}</p>
+      <p :id="titleId" class="t-title text-ink">{{ title }}</p>
       <p v-if="body" class="t-body text-ink-70 mt-2.5">{{ body }}</p>
       <div class="mt-4"><slot /></div>
     </div>
