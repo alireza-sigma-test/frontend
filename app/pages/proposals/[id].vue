@@ -30,7 +30,13 @@ async function load() {
 
 onMounted(load)
 
-const sizeMb = (b: number) => (b / 1024 / 1024).toFixed(1)
+// The design's sample copy reads "2.4 MB", but a fixed MB unit renders the
+// seeded 231-byte attachment as "0.0 MB", which looks like an empty file.
+// Scale the unit so small attachments describe themselves honestly.
+const fileSize = (b: number) =>
+  b < 1024 ? `${b} B`
+    : b < 1024 * 1024 ? `${(b / 1024).toFixed(1)} KB`
+      : `${(b / 1024 / 1024).toFixed(1)} MB`
 </script>
 
 <template>
@@ -100,7 +106,7 @@ const sizeMb = (b: number) => (b / 1024 / 1024).toFixed(1)
         <span class="rounded-badge border border-file-br bg-file-bg text-file-fg t-eyebrow px-1.5 py-1 flex-none">PDF</span>
         <span class="flex-1 min-w-0">
           <span class="t-body text-ink block truncate">{{ proposal.attachment.filename }}</span>
-          <span class="t-eyebrow text-ink-45">{{ sizeMb(proposal.attachment.size_bytes) }} MB</span>
+          <span class="t-eyebrow text-ink-45">{{ fileSize(proposal.attachment.size_bytes) }}</span>
         </span>
         <span class="t-label text-ink rounded-control border border-rule-strong px-3.5 py-2 flex-none">Open</span>
       </a>
@@ -141,7 +147,7 @@ const sizeMb = (b: number) => (b / 1024 / 1024).toFixed(1)
             {{ proposal.average_rating !== null ? proposal.average_rating.toFixed(1) : '—' }}
           </span>
           <span class="t-body text-ink-45">
-            {{ proposal.reviews_count ? `from ${proposal.reviews_count} reviews` : 'no reviews yet' }}
+            {{ proposal.reviews_count ? `from ${proposal.reviews_count} review${proposal.reviews_count === 1 ? '' : 's'}` : 'no reviews yet' }}
           </span>
         </div>
       </UiCard>
