@@ -102,7 +102,12 @@ watch(() => store.loading, (loading) => {
       </UiCard>
     </div>
 
-    <div v-if="store.items.length" class="hidden md:block bg-card border border-rule rounded-card overflow-hidden mt-8">
+    <!-- Not a bare `v-if="store.items.length"`: the mobile block above is
+         chained into the loading/error `v-else-if`, but this one is its own
+         root condition, so it must re-state those guards. `fetch()` does not
+         clear `items` while loading, so without them a decision at >=768px
+         renders the skeleton and the stale pre-decision table at once. -->
+    <div v-if="!store.loading && !store.error && store.items.length" class="hidden md:block bg-card border border-rule rounded-card overflow-hidden mt-8">
       <!-- The design's own mockup pins this at min-width:1240px — a dense
            5-column table with fixed action-button widths doesn't reflow to
            a phone width the way ProposalCard's grid does. Scroll the table
