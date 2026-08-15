@@ -5,13 +5,24 @@ const emit = defineEmits<{ 'update:modelValue': [File | null] }>()
 const MAX_BYTES = 4 * 1024 * 1024
 const error = ref('')
 const dragging = ref(false)
+// A screen reader only announces a live region's text CHANGING, and only if
+// the region already exists in the DOM beforehand — so this is a permanent,
+// always-mounted node (never toggled with v-if), same pattern as screen 02's
+// result announcer.
+const announcement = ref('')
 
 function accept(file: File | undefined) {
   error.value = ''
   if (!file) return
-  if (file.type !== 'application/pdf') { error.value = 'PDF only.'; return }
-  if (file.size > MAX_BYTES) { error.value = 'That file is over 4 MB.'; return }
+  if (file.type !== 'application/pdf') { error.value = 'PDF only.'; announcement.value = error.value; return }
+  if (file.size > MAX_BYTES) { error.value = 'That file is over 4 MB.'; announcement.value = error.value; return }
   emit('update:modelValue', file)
+  announcement.value = `${file.name} attached.`
+}
+
+function clear() {
+  emit('update:modelValue', null)
+  announcement.value = 'File removed.'
 }
 
 const mb = (b: number) => (b / 1024 / 1024).toFixed(1)
@@ -49,10 +60,12 @@ const mb = (b: number) => (b / 1024 / 1024).toFixed(1)
       <span class="rounded-badge border border-file-br bg-file-bg text-file-fg t-eyebrow px-1.5 py-1">PDF</span>
       <span class="t-body text-ink flex-1 truncate">{{ modelValue.name }}</span>
       <span class="t-eyebrow text-ink-45">{{ mb(modelValue.size) }} MB of 4 MB</span>
-      <button type="button" class="text-ink-45 hover:text-ink" aria-label="Remove file" @click="emit('update:modelValue', null)">✕</button>
+      <button type="button" class="text-ink-45 hover:text-ink" aria-label="Remove file" @click="clear">✕</button>
     </div>
 
     <p v-if="error" class="t-label text-rejected-fg">{{ error }}</p>
     <p v-else class="t-label text-ink-45">PDF only, 4 MB maximum. Validated here and again by the API.</p>
+
+    <p aria-live="polite" class="sr-only">{{ announcement }}</p>
   </div>
 </template>

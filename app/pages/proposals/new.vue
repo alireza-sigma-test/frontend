@@ -12,7 +12,14 @@ const busy = ref(false)
 
 onMounted(() => { if (!tags.items.length) tags.fetch() })
 
+const FORM_FIELDS = ['title', 'description', 'tags', 'attachment']
+
 async function submit() {
+  // Two synchronous clicks with no event-loop yield both pass the :disabled
+  // check before Vue re-renders it — an explicit guard is the only thing
+  // that actually stops a duplicate POST, unlike relying on the button's
+  // reactive `disabled` state.
+  if (busy.value) return
   busy.value = true
   errors.value = {}
   try {
@@ -29,9 +36,7 @@ async function submit() {
   } catch (e) {
     const err = e as ApiError
     errors.value = err.errors
-    // Field errors land under their inputs; a status with no field errors
-    // (429, 5xx) has nowhere to render but a toast.
-    if (!Object.keys(err.errors).length) push(err.message, 'error')
+    reportUnhandledErrors(err, FORM_FIELDS, push)
   } finally {
     busy.value = false
   }
@@ -54,7 +59,10 @@ async function submit() {
           help="Markdown is not rendered — plain paragraphs read best in review."
           :error="errors.description?.[0]"
         />
-        <UiTagInput v-model="form.tags" :suggestions="tags.items" />
+        <div>
+          <UiTagInput v-model="form.tags" :suggestions="tags.items" />
+          <p v-if="errors.tags?.[0]" class="t-label text-rejected-fg mt-1.5">{{ errors.tags[0] }}</p>
+        </div>
         <UiFileDrop v-model="form.attachment" />
         <p v-if="errors.attachment?.[0]" class="t-label text-rejected-fg">{{ errors.attachment[0] }}</p>
 
@@ -62,7 +70,7 @@ async function submit() {
              it (app-screens.html:275-278), not a separate line below. -->
         <div class="flex items-center flex-wrap gap-3.5 pt-3 border-t border-rule">
           <UiButton type="submit" size="lg" :disabled="busy">{{ busy ? 'Submitting…' : 'Submit proposal' }}</UiButton>
-          <NuxtLink to="/proposals"><UiButton variant="ghost" size="lg">Cancel</UiButton></NuxtLink>
+          <UiButton to="/proposals" variant="ghost" size="lg">Cancel</UiButton>
           <p class="t-label text-ink-45 sm:ml-auto">
             Status will be <strong class="text-pending-fg">pending</strong> until a reviewer reads it.
           </p>

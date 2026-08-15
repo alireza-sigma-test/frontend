@@ -16,7 +16,10 @@ const roles = [
   { value: 'admin',    label: 'Administrator', description: 'Set the final status of any proposal' },
 ]
 
+const FORM_FIELDS = ['name', 'email', 'password', 'password_confirmation', 'role']
+
 async function submit() {
+  if (busy.value) return
   busy.value = true
   errors.value = {}
   try {
@@ -25,7 +28,7 @@ async function submit() {
   } catch (e) {
     const err = e as ApiError
     errors.value = err.errors
-    if (!Object.keys(err.errors).length) push(err.message, 'error')
+    reportUnhandledErrors(err, FORM_FIELDS, push)
   } finally {
     busy.value = false
   }

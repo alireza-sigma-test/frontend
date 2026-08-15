@@ -1,6 +1,14 @@
 <script setup lang="ts">
 import type { Tag } from '~/types/api'
 
+// Mirrors the API's own `tags` max:10 validation exactly (probed live:
+// 10 tags creates a proposal, 11 returns "The tags field must not have
+// more than 10 items."). Capping here isn't just UX polish — it's the
+// only thing standing between this input and an unrenderable server
+// error, since nothing on the consuming page has a slot for a `tags`
+// error keyed at the whole-array level once it silently overflows.
+const MAX_TAGS = 10
+
 const props = defineProps<{ modelValue: (number | string)[]; suggestions: Tag[] }>()
 const emit = defineEmits<{ 'update:modelValue': [(number | string)[]] }>()
 
@@ -11,7 +19,10 @@ const selectedLabels = computed(() => props.modelValue.map((v) => {
   return { value: v, label: found?.name ?? String(v) }
 }))
 
+const atMax = computed(() => props.modelValue.length >= MAX_TAGS)
+
 const matches = computed(() => {
+  if (atMax.value) return []
   const q = query.value.trim().toLowerCase()
   if (!q) return []
   return props.suggestions
@@ -23,6 +34,7 @@ const matches = computed(() => {
 // chosen matches either — case-insensitively, so typing "Testing" then
 // "testing" doesn't emit two near-identical new tags in one submission.
 const canCreate = computed(() => {
+  if (atMax.value) return false
   const q = query.value.trim()
   const qLower = q.toLowerCase()
   return q.length > 0 && q.length <= 40
@@ -31,6 +43,7 @@ const canCreate = computed(() => {
 })
 
 function add(value: number | string) {
+  if (atMax.value) return
   // Case-insensitive guard for new names (ids are compared as-is; casing
   // doesn't apply to a numeric id).
   const alreadyChosen = typeof value === 'string'
@@ -46,7 +59,11 @@ function remove(value: number | string) {
 
 <template>
   <div class="flex flex-col gap-1.5">
-    <label class="t-label text-ink">Tags <span class="text-ink-45">optional</span></label>
+    <div class="flex items-baseline justify-between">
+      <label class="t-label text-ink">Tags <span class="text-ink-45">optional</span></label>
+      <!-- Visible before the cap is hit, not just on rejection at 11. -->
+      <span class="t-eyebrow" :class="atMax ? 'text-terracotta' : 'text-ink-45'">{{ modelValue.length }} / {{ MAX_TAGS }}</span>
+    </div>
 
     <!-- Interactive control -> border-rule-strong, not the structural border-rule.
          Background is bg-card: the design system's tag input renders on white,
@@ -61,8 +78,9 @@ function remove(value: number | string) {
       </span>
 
       <input
-        v-model="query" placeholder="Type to search or create…"
-        class="flex-1 min-w-[12rem] bg-transparent t-body text-ink placeholder:text-ink-45 outline-none px-1"
+        v-model="query" :disabled="atMax"
+        :placeholder="atMax ? 'Maximum reached — remove one to add another' : 'Type to search or create…'"
+        class="flex-1 min-w-[12rem] bg-transparent t-body text-ink placeholder:text-ink-45 outline-none px-1 disabled:cursor-not-allowed"
         @keydown.enter.prevent="canCreate && add(query.trim())"
       >
     </div>

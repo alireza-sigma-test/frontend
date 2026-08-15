@@ -9,7 +9,10 @@ const password = ref('')
 const errors = ref<Record<string, string[]>>({})
 const busy = ref(false)
 
+const FORM_FIELDS = ['email', 'password']
+
 async function submit() {
+  if (busy.value) return
   busy.value = true
   errors.value = {}
   try {
@@ -18,8 +21,7 @@ async function submit() {
   } catch (e) {
     const err = e as ApiError
     errors.value = err.errors
-    // 429 and 5xx carry no field errors, so surface them as a toast.
-    if (!Object.keys(err.errors).length) push(err.message, 'error')
+    reportUnhandledErrors(err, FORM_FIELDS, push)
   } finally {
     busy.value = false
   }

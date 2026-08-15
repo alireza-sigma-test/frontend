@@ -104,9 +104,7 @@ watch(() => route.query.search, (v) => {
         <div class="flex items-center gap-3 flex-wrap">
           <UiInput v-model="search" label="Search" placeholder="Search titles…" />
           <UiButton variant="secondary" size="sm" @click="resetAll">Reset</UiButton>
-          <NuxtLink v-if="auth.user && auth.isSpeaker" to="/proposals/new">
-            <UiButton size="sm">Submit a proposal</UiButton>
-          </NuxtLink>
+          <UiButton v-if="auth.user && auth.isSpeaker" to="/proposals/new" size="sm">Submit a proposal</UiButton>
         </div>
       </div>
 
