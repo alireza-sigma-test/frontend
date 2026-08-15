@@ -11,6 +11,13 @@
   --color-rule:             #E5E1DA;
   --color-rule-strong:      #D3CEC5;
   --color-ink:              #1A1815;
+  /* Reading copy — the full proposal description and review comments — is
+     darker than ink-70. Screen 04 is the first screen to render either at
+     length; ink-70 is what card previews and captions use, ink-85 is what
+     the design renders full body text in (#3A362F, ~86% ink over paper —
+     consistent with ink-70 and ink-45 both landing near their own name as
+     an ink/paper blend percentage). */
+  --color-ink-85:           #3A362F;
   --color-ink-70:           #56514B;
   --color-ink-45:           #8A837A;
   --color-terracotta:       #B44C1E;
