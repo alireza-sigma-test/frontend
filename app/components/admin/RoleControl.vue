@@ -10,6 +10,14 @@ const busy = ref(false)
 // `long` is what the sentence forms need — an aria-label ("Make Dana Roth a
 // speaker") and the confirmation toast — since the button's own visible word
 // is a noun with no context of its own inside a table cell.
+//
+// `label: 'Admin'` here is deliberately short, even though the badge and the
+// invite modal both spell out "Administrator" for the same role — a
+// deliberate concession, not an oversight: three buttons have to fit
+// side by side in the "Set role" column's `w-[250px]` cell, and
+// "Administrator" alongside "Speaker" and "Reviewer" does not. `long`
+// still says "an administrator" in full, so the one place this shorthand
+// could read as a different role (the aria-label and the toast) does not.
 const ROLES: { value: Role; label: string; long: string }[] = [
   { value: 'speaker',  label: 'Speaker',  long: 'a speaker' },
   { value: 'reviewer', label: 'Reviewer', long: 'a reviewer' },
