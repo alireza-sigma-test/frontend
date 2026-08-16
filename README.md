@@ -31,12 +31,31 @@ make preview   # generates the static bundle, then serves .output/public on :300
 
 ## Configuration
 
-One variable, in `.env` (already set in `.env.example` for the default
-`docker compose` port):
+Five variables, in `.env` (all already set in `.env.example` for the default
+`docker compose` ports):
 
 ```
 NUXT_PUBLIC_API_BASE=http://localhost:8000/api
+
+NUXT_PUBLIC_REVERB_KEY=pr-local-app-key
+NUXT_PUBLIC_REVERB_HOST=localhost
+NUXT_PUBLIC_REVERB_PORT=8080
+NUXT_PUBLIC_REVERB_SCHEME=http
 ```
+
+The Reverb four describe the websocket **as the browser reaches it**. The API
+reaches the same server by its compose hostname on the internal Docker network,
+so the backend's `REVERB_HOST`/`REVERB_PORT` hold different values for the same
+thing — and `NUXT_PUBLIC_REVERB_PORT` must track the backend's
+`REVERB_HOST_PORT`, the host-side mapping, not its `REVERB_PORT`.
+
+`NUXT_PUBLIC_REVERB_KEY` is not a secret. It identifies the application in the
+socket handshake and is meant to reach the client; the app *secret* never leaves
+the server, and joining a private channel still needs a signed
+`/broadcasting/auth` response only the server can produce.
+
+**The app runs with none of them reachable.** Stop the `reverb` container and
+every screen still works — see *Real-time* below.
 
 ## Seeded accounts
 
@@ -211,6 +230,7 @@ one it just received:
 | Flat object | `GET /me` → `User`; `POST /login` → `{ token, user }` | `stores/auth.ts` |
 | `{ data: T[] }` | `GET /tags` | `stores/tags.ts` |
 | `{ data, meta, counts }` | `GET /proposals` | `stores/proposals.ts` |
+| `{ data, meta }` | `GET /notifications` (its `meta` also carries `unread_count`), `GET /activity` | `stores/notifications.ts`, `pages/activity.vue` |
 
 Each store's action types its own response and reads it directly — three
 call sites, three known shapes, no runtime shape-sniffing. `stores/proposals.ts`
@@ -260,27 +280,34 @@ interface rather than a loosened shared one.
 app/
   components/
     admin/      InviteUserModal, ReinviteButton, RoleControl, UserBadge
+    notification/ Bell (header trigger + badge), Panel (the dropdown)
     proposal/   ProposalCard, ProposalFilters, ReviewForm, ReviewList, StatusControl
-    ui/         Buttons, inputs, cards, modal, toast, skeleton, pagination — the design-system primitives
+    ui/         Buttons, inputs, cards, modal, toast, skeleton, pagination, NewActivity
+                — the design-system primitives
     user/       VerificationBanner
-  composables/  useApi (HTTP), useToast (notifications), useProposalFilters
+  composables/  useApi (HTTP), useToast (transient messages), useProposalFilters
                 (URL-query filters), useResultAnnouncer (shared live region),
-                usePublicStats (the sign-in panel's two counters)
+                usePublicStats (the sign-in panel's two counters),
+                useRealtime (channel subscriptions, unsubscribed on unmount)
   layouts/      auth.vue (split marketing panel), default.vue (header + nav)
   middleware/   auth.global.ts (session gate), role.ts (per-page role gate)
   pages/        login, register, verify-email, invite/accept, proposals/index,
-                proposals/new, proposals/[id], admin/decisions, admin/users
-  stores/       auth, proposals, tags — Pinia
+                proposals/new, proposals/[id], admin/decisions, admin/users,
+                activity
+  plugins/      echo.client.ts (the websocket, and nothing else)
+  stores/       auth, proposals, tags, notifications — Pinia
   types/        api.ts (server resource shapes), router.d.ts (RouteMeta augmentation)
   utils/        formErrors.ts (422 → field vs. toast), time.ts (relative timestamps)
 ```
 
-Nine page files now. The original five screens still account for six of
+Ten page files now. The original five screens still account for six of
 them — sign-in and register are one screen, two routes: the review list,
 submit, the proposal detail with review posting, and the admin decision
 queue round out the other four. `/verify-email` and `/invite/accept` are new
 routes rather than additional numbered screens; `/admin/users` is screen 07
-— see the deviations noted above.
+— see the deviations noted above. `/activity` is screen 06, together with the
+notification bell in the header, which is part of the layout rather than a
+route of its own.
 
 ## Known limitation: concurrent status decisions
 
@@ -298,15 +325,45 @@ Fixing it properly needs an API change — an `If-Match`-style version or an
 expected-prior-status field on `PATCH /proposals/{id}/status` — not something
 addressable from the client alone.
 
+## Real-time
+
+Laravel Echo over the backend's Reverb server. `app/plugins/echo.client.ts`
+owns the socket; `useRealtime()` is what screens use, so no page touches Echo
+directly and every subscription is torn down on unmount.
+
+Two decisions worth knowing:
+
+**Lists offer, the detail page applies.** `/proposals`, `/admin/decisions` and
+`/activity` count incoming events into a "N new updates" bar and change nothing
+until you click Refresh. Inserting rows would be wrong three silent ways: those
+lists are filtered and sorted *server-side*, so a client-side insert can show a
+row the filter excludes in a position the server would not choose; on page 2 a
+new item belongs on page 1; and the decision queue is sorted by rating, so a
+review landing anywhere can reorder the options under an admin mid-decision. The
+proposal detail page has one record and no ordering, so it applies updates
+directly — the status badge is patched straight from the event payload and then
+refetched, because a decided proposal is also no longer editable and `can` is
+computed server-side.
+
+**Nothing depends on the socket.** Every screen fetches its own data, and the
+notification badge comes from `GET /api/notifications`'s `meta.unread_count` —
+events only nudge it — so the count is correct with Reverb stopped. The
+"Connected" pill in the header appears only while the socket is up, rather than
+showing an "Offline" chip that would read as a broken app on a deployment
+without Reverb.
+
+With the container stopped the browser writes its own
+`WebSocket connection … ERR_CONNECTION_REFUSED` to the console, once per retry.
+That is the WebSocket API's own log, like a failed image; no JavaScript can
+suppress it, and it is not a defect. The retries are deliberate — a page opened
+while Reverb was down reconnects by itself when it comes back.
+
 ## Not built
 
 **Nothing on screen is mocked.** Every value in every screenshot a reviewer
 takes is real data from the live backend; that's a deliberate choice, not an
 oversight, and it's why the gaps below are absences rather than stand-ins.
 
-- **Screen 06 ("Live updates")** — notifications and the activity feed — is
-  not implemented. It was never one of the five screens in this task's
-  scope; it needs Laravel Reverb, a later backend tier.
 - **No rating-distribution bars on the detail screen.** The average and
   review count render; the per-star breakdown doesn't. `GET
   /proposals/{id}` does return a `rating_distribution` field (verified
@@ -329,7 +386,7 @@ oversight, and it's why the gaps below are absences rather than stand-ins.
 
 ## Tests
 
-None, deliberately. The backend carries the whole suite (241 tests, 736
+None, deliberately. The backend carries the whole suite (295 tests, 899
 assertions); a thin component suite here would have cost time without
 covering the logic that actually matters — server-side policies, validation
 and status transitions. Stated as a decision rather than left as a gap.
