@@ -107,6 +107,22 @@ const fileSize = (b: number) =>
         >{{ t.name }}</span>
       </div>
 
+      <!-- Same control decisions.vue mounts, gated the same way on
+           `can.change_status` (the server's own per-record policy result,
+           already folded in verification) — so an admin can decide here
+           instead of returning to the queue. `ProposalStatusControl`, not
+           `StatusControl`: same Nuxt folder-prefix rule the Reviews section
+           below documents for `ProposalReviewList`. No separate focus fix
+           needed on `@changed`: `load()` is the same reload the review form
+           already triggers on `@saved`, and `useResultAnnouncer`'s
+           `onSettled` (above) already refocuses `heading` after it settles
+           — the same fix admin/users.vue made for the same unmount-on-reload
+           cause (verified live: `document.activeElement` landed back on the
+           `<h1>`, not `<body>`, after a keyboard-driven decision). -->
+      <div v-if="proposal.can.change_status" class="mt-6">
+        <ProposalStatusControl :proposal="proposal" @changed="load" />
+      </div>
+
       <!-- ink-85, not ink-70: this is full-length reading copy
            (app-screens.html:328), the same treatment review comments get
            below — lighter ink-70 is for captions and previews elsewhere. -->
