@@ -48,6 +48,53 @@ All passwords are `password`.
 | `maya@example.com` | reviewer |
 | `alex@example.com` | admin |
 
+## Email verification and admin-managed accounts
+
+Three routes join the original five screens:
+
+- **`/verify-email`** — the only way out of "unverified." An authenticated
+  user who registered self-service lands here, or follows the persistent
+  banner (`components/user/VerificationBanner.vue`) from anywhere else in
+  the app. `POST /email/verify` takes the six-digit code and returns the
+  updated user; `auth.setUser()` applies it in place, so the banner and
+  every `can`-driven control clear without a reload. "Send a new code"
+  reissues (`POST /email/resend`) and invalidates whatever code came before.
+- **`/invite/accept`** — **public**, alongside `/login` and `/register` in
+  `middleware/auth.global.ts`'s `PUBLIC` array. An invitee has no password
+  yet, so the default redirect-to-`/login` would be a dead end they could
+  never leave. Email, the 12-character invite code and a new password go to
+  `POST /invites/accept`, which returns `{ token, user }` and signs them in
+  directly — no separate login step.
+- **`/admin/users`** — admin-only, gated the same way as `/admin/decisions`
+  (`middleware: 'role', roles: ['admin']`). A paginated directory of every
+  account, an "Invite a user" modal offering all three roles, an inline
+  role control per row, and a "Re-invite" action for accounts still
+  unverified. The API refuses to let an admin change their own role or
+  demote the last remaining admin — both refusals surface as the server's
+  own message rather than a client-side guess.
+
+Both kinds of code are plain text in the outgoing email, and nothing here is
+delivered to a real mailbox. Read them at **Mailpit**,
+`http://localhost:8025` (the backend's `make up` already starts it): register
+an account or send an invite, open Mailpit, copy the code. That's what makes
+both flows explorable end to end without configuring real SMTP.
+
+### Where this deviates from the approved design
+
+Every other screen in this project was built against a real mockup
+(`../docs/design/app-screens.html`). These two were not:
+
+1. **`register.vue` offers two role options where the mockup shows three.**
+   `POST /register` now rejects `role: admin` with a `422` — administrators
+   are created by administrators, from `/admin/users` — so the third option
+   would be a choice that cannot succeed. The full three-role choice still
+   exists; it just moved to the invite modal.
+2. **Screen 07 (`/admin/users`) has no mockup at all** — it isn't one of the
+   five screens this project was scoped against. It was composed from
+   screen 05's (`/admin/decisions`) established patterns instead — the same
+   table-above-`md`/cards-below layout, `UiBadge`, `UiModal`, and the
+   existing button variants — rather than a new visual design.
+
 ## Architecture
 
 `ssr: false` — every request originates in the browser, so `npm run generate`
@@ -115,12 +162,16 @@ let a slow, stale response clobber a newer one; `stores/tags.ts` shares a
 single in-flight request across simultaneous mounts (the mobile filter
 disclosure and the desktop sidebar are both real, mounted-at-once instances).
 
-**One page deliberately skips the store layer.** `pages/proposals/[id].vue`
+**Two pages deliberately skip the store layer.** `pages/proposals/[id].vue`
 holds `proposal`/`loading`/`notFound`/`error` as local `ref`s and calls
 `useApi()` directly, instead of going through a Pinia store like the other
 two data screens do — it fetches a single resource nobody else on the page
 shares, so there's no state to coordinate across components and a store
-would add a layer for nothing.
+would add a layer for nothing. `pages/admin/users.vue` does the same for the
+same reason: nothing else on screen shares its list, and its `{ data, meta }`
+response has no equivalent in `types/api.ts`'s `Paginated<T>` (which also
+carries the proposal list's `counts` block), so it gets its own local
+interface rather than a loosened shared one.
 
 ### Auth and role guards
 
@@ -129,35 +180,49 @@ would add a layer for nothing.
   from the stored token and re-fetches `/me` once per page load.
 - `middleware/auth.global.ts` runs on every navigation: unauthenticated users
   are sent to `/login`, and an authenticated user hitting `/login` or
-  `/register` is bounced to `/proposals`.
+  `/register` is bounced to `/proposals`. `/invite/accept` is the one other
+  exception in its `PUBLIC` array — an invitee has no password yet, so
+  leaving it gated would be a dead end.
 - `middleware/role.ts` is opt-in per page — `definePageMeta({ middleware:
   'role', roles: ['admin'] })` — and is what actually keeps `/proposals/new`
-  to speakers and `/admin/decisions` to admins. The nav links for both are
-  also conditioned on the same role check, so there's no dead link inviting a
-  role into a page it'll immediately be redirected out of.
+  to speakers and `/admin/decisions` and `/admin/users` to admins. The nav
+  links are also conditioned on the same role check, so there's no dead link
+  inviting a role into a page it'll immediately be redirected out of.
 - `app/types/router.d.ts` augments Vue Router's `RouteMeta` with `roles?:
   Role[]`, so the middleware reads `to.meta.roles` typed, no cast.
+- An authenticated-but-unverified user isn't middleware-gated to a single
+  route; `auth.isVerified` instead swaps content in place — the persistent
+  banner in `default.vue`, and an empty-state prompt instead of the form on
+  `/proposals/new` — because a redirect away from a page the user
+  deliberately opened would be disorienting, and the server enforces the
+  real gate on every mutating route regardless of what the client shows.
 
 ### Project layout
 
 ```
 app/
   components/
+    admin/      InviteUserModal, ReinviteButton, RoleControl, UserBadge
     proposal/   ProposalCard, ProposalFilters, ReviewForm, ReviewList, StatusControl
     ui/         Buttons, inputs, cards, modal, toast, skeleton, pagination — the design-system primitives
+    user/       VerificationBanner
   composables/  useApi (HTTP), useToast (notifications), useProposalFilters
                 (URL-query filters), useResultAnnouncer (shared live region)
   layouts/      auth.vue (split marketing panel), default.vue (header + nav)
   middleware/   auth.global.ts (session gate), role.ts (per-page role gate)
-  pages/        login, register, proposals/index, proposals/new, proposals/[id], admin/decisions
+  pages/        login, register, verify-email, invite/accept, proposals/index,
+                proposals/new, proposals/[id], admin/decisions, admin/users
   stores/       auth, proposals, tags — Pinia
   types/        api.ts (server resource shapes), router.d.ts (RouteMeta augmentation)
   utils/        formErrors.ts (422 → field vs. toast), time.ts (relative timestamps)
 ```
 
-Six page files for five screens — sign-in and register are one screen, two
-routes: the review list, submit, the proposal detail with review posting,
-and the admin decision queue round out the other four.
+Nine page files now. The original five screens still account for six of
+them — sign-in and register are one screen, two routes: the review list,
+submit, the proposal detail with review posting, and the admin decision
+queue round out the other four. `/verify-email` and `/invite/accept` are new
+routes rather than additional numbered screens; `/admin/users` is screen 07
+— see the deviations noted above.
 
 ## Known limitation: concurrent status decisions
 
@@ -195,6 +260,10 @@ oversight, and it's why the gaps below are absences rather than stand-ins.
   not a `/stats` endpoint — there isn't one. `counts` is unaffected by the
   queue's own status/sort filter, which is what makes it usable as a stable
   total.
+- **No delete or deactivate control on `/admin/users`.** Roles can be
+  changed but accounts persist — removing one raises a real cascade question
+  (orphan, reassign or soft-delete its proposals and reviews) that's larger
+  than this tier and was scoped out deliberately.
 
 ## Tests
 
