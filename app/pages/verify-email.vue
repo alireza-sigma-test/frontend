@@ -1,8 +1,5 @@
-<!-- app/pages/verify-email.vue -->
 <script setup lang="ts">
 import type { User } from '~/types/api'
-
-definePageMeta({ layout: 'default' })
 
 const auth = useAuthStore()
 const { push } = useToast()
