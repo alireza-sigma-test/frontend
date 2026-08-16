@@ -48,6 +48,36 @@ All passwords are `password`.
 | `maya@example.com` | reviewer |
 | `alex@example.com` | admin |
 
+## The sign-in panel's counters are real, and therefore small
+
+The split panel behind `/login`, `/register` and `/invite/accept`
+(`layouts/auth.vue`, visible from the `lg` breakpoint up) ends with two live
+counts from `GET /api/public-stats`: proposals created in the current
+calendar year, and users holding the reviewer role. On the seeded database
+those are **6 and 4**, where the mockup (`../docs/design/app-screens.html`)
+shows 248 and 31.
+
+**That is the correct result, not a broken fetch.** Nothing in this app is
+mocked, so the panel reports what the database actually holds, and a freshly
+seeded database is simply a small one.
+
+Three things worth knowing about the endpoint:
+
+- It is the app's **only unauthenticated read**, deliberately separate from
+  the admin-only `GET /stats`. That one exposes
+  `pending`/`approved`/`rejected`/`ready_to_decide` — the decision pipeline,
+  which is not public information.
+- `reviewers` counts users with the reviewer *role*, not distinct review
+  authors. That matches the label "reviewers reading", and it cannot leak
+  which proposals have been reviewed.
+- The response is cached server-side for five minutes, so a count you
+  change by hand won't move on the very next reload.
+
+If the call fails, the panel hides and sign-in carries on as normal —
+`composables/usePublicStats.ts` swallows the error on purpose, because an
+API error shown to someone who has not authenticated yet is worse than a
+missing decoration.
+
 ## Email verification and admin-managed accounts
 
 Three routes join the original five screens:
@@ -111,13 +141,40 @@ client-side, so `/proposals/1` is not a file on disk. `make preview` uses
 `serve -s`, which does this; a real host needs one rewrite rule for it.
 
 - **Design tokens before components.** The palette, borders, type scale,
-  radii and the one shadow live in `app/assets/css/main.css` as Tailwind v4
-  `@theme` tokens — there is no `tailwind.config.js`. No component
-  hard-codes a colour; there are exactly seven named type styles (`t-display`
-  … `t-eyebrow`) because the design system defines seven, not eight. A few
-  tokens carry a comment naming the near-miss they were added to replace
-  (e.g. `rule-mid` vs `rule`/`rule-strong`) — that's intentional documentation
-  of a design decision, not dead code.
+  radii, the one shadow, and the motion durations and easings live in
+  `app/assets/css/main.css` as Tailwind v4 `@theme` tokens — there is no
+  `tailwind.config.js`. No component hard-codes a colour; there are exactly
+  seven named type styles (`t-display` … `t-eyebrow`) because the design
+  system defines seven, not eight. A few tokens carry a comment naming the
+  near-miss they were added to replace (e.g. `rule-mid` vs
+  `rule`/`rule-strong`) — that's intentional documentation of a design
+  decision, not dead code.
+- **Motion is three durations, two easings and one global guard.** Named for
+  intent rather than value, the same way the colour tokens are:
+  `--duration-instant` (120 ms) for hover and other interactive state
+  changes, `--duration-quick` (180 ms) for the page transition and the
+  toast's exit, `--duration-moderate` (260 ms) for the modal and the toast's
+  entrance; `--ease-out-soft` on hovers, `--ease-in-out-soft` on the
+  enter/leave pairs (the toast, the modal). Three durations is the whole
+  scale — a longer one invites picking by taste instead of by intent.
+  - **`--duration-*` is not a Tailwind utility namespace.** `--ease-*` is, so
+    it emits `.ease-out-soft` directly; `--duration-*` emits nothing, and a
+    bare `duration-quick` class silently compiles to no CSS at all. Every
+    call site therefore writes the arbitrary-value form,
+    `duration-[var(--duration-quick)]`.
+  - **The page transition has no leave half.** `mode: 'out-in'` plus a leave
+    duration holds the incoming page unmounted until the leave finishes,
+    which delays that page's own `onMounted` fetch by exactly the leave
+    duration — measured at ~120 ms on every navigation. Arriving pages fade
+    in; leaving pages just go (`app/app.vue`).
+  - **Reduced motion is one global block**, at the foot of `main.css`, that
+    collapses every animation and transition to 0.01 ms under
+    `prefers-reduced-motion: reduce` — rather than a `motion-reduce:` variant
+    that has to be remembered at every call site, where the cost of
+    forgetting one is worse than the bluntness of the rule. It lists
+    `*::backdrop` explicitly because `*` does not match a pseudo-element, so
+    the modal's backdrop fade would otherwise be the one thing it never
+    reaches.
 - **Filters live in the URL.** `/proposals?search=…&tags=…&status=…` is
   shareable and the back button works; the search box is debounced 300 ms
   before it becomes a URL change (and therefore a request).
@@ -207,7 +264,8 @@ app/
     ui/         Buttons, inputs, cards, modal, toast, skeleton, pagination — the design-system primitives
     user/       VerificationBanner
   composables/  useApi (HTTP), useToast (notifications), useProposalFilters
-                (URL-query filters), useResultAnnouncer (shared live region)
+                (URL-query filters), useResultAnnouncer (shared live region),
+                usePublicStats (the sign-in panel's two counters)
   layouts/      auth.vue (split marketing panel), default.vue (header + nav)
   middleware/   auth.global.ts (session gate), role.ts (per-page role gate)
   pages/        login, register, verify-email, invite/accept, proposals/index,
