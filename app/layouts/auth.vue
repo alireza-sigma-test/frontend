@@ -1,3 +1,8 @@
+<script setup lang="ts">
+const { stats, load } = usePublicStats()
+onMounted(load)
+</script>
+
 <template>
   <div class="min-h-screen grid lg:grid-cols-2">
     <aside class="hidden lg:flex flex-col justify-between bg-sunken px-[72px] py-16 border-r border-rule">
@@ -13,17 +18,13 @@
         </p>
       </div>
 
-      <!-- Static copy: the design's marketing panel shows 248 / 31. A
-           `/stats` endpoint exists (verified live), but nothing on this
-           signed-out screen holds a token to call it with, so these stay
-           the design's own placeholder numbers rather than live ones. -->
-      <div class="flex gap-10">
+      <div v-if="stats" class="flex gap-10">
         <div>
-          <p class="t-title text-ink">248</p>
+          <p class="t-title text-ink">{{ stats.proposals_this_year }}</p>
           <p class="t-label text-ink-45 mt-0.5">proposals this year</p>
         </div>
         <div>
-          <p class="t-title text-ink">31</p>
+          <p class="t-title text-ink">{{ stats.reviewers }}</p>
           <p class="t-label text-ink-45 mt-0.5">reviewers reading</p>
         </div>
       </div>
