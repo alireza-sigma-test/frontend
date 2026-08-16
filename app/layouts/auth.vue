@@ -13,8 +13,10 @@
         </p>
       </div>
 
-      <!-- Static copy: the design's marketing panel shows 248 / 31, and there
-           is no stats endpoint to source live numbers from. -->
+      <!-- Static copy: the design's marketing panel shows 248 / 31. A
+           `/stats` endpoint exists (verified live), but nothing on this
+           signed-out screen holds a token to call it with, so these stay
+           the design's own placeholder numbers rather than live ones. -->
       <div class="flex gap-10">
         <div>
           <p class="t-title text-ink">248</p>

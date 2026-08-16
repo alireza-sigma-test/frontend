@@ -5,9 +5,12 @@ const store = useProposalsStore()
 
 // The decision queue is the list endpoint with a preset filter — no
 // separate route exists (API.md §05). Counters come from the same
-// response's `counts` block: there is no `/stats` endpoint (verified live,
-// 404 — `GET /api/proposals?status=pending&sort=rating` plus this `counts`
-// block covers everything the header needs).
+// response's `counts` block rather than `GET /stats`: that endpoint exists
+// (verified live — `total`/`pending`/`approved`/`rejected`/`ready_to_decide`),
+// but `counts` is unaffected by this queue's own status/sort filter, which
+// makes it the better source for a stable total — `GET
+// /api/proposals?status=pending&sort=rating` plus this `counts` block
+// covers everything the header needs without a second request.
 function load() {
   store.fetch({ status: 'pending', sort: 'rating', per_page: '50' })
 }
@@ -25,12 +28,12 @@ const counters = computed(() => [
 ])
 
 // app-screens.html:431 reads "3 proposals have enough reviews to decide" —
-// that "enough reviews" gate would be the documented-but-not-real
-// `ready_to_decide` field from API.md's `/api/stats` (confirmed live: that
-// route 404s — there is no such endpoint, and nothing here enforces a
-// minimum review count before a decision anyway). The queue itself already
-// is every pending proposal, so this counts what's actually on screen
-// rather than asserting a threshold nothing backs.
+// that "enough reviews" gate would be the `ready_to_decide` field `/api/stats`
+// actually returns (confirmed live), but nothing here enforces a minimum
+// review count before a decision, and `/stats` isn't filtered to this
+// queue's pending/rating view the way `counts` above is. The queue itself
+// already is every pending proposal, so this counts what's actually on
+// screen rather than asserting a threshold nothing backs.
 const subtitle = computed(() => {
   const n = store.items.length
   return `${n} proposal${n === 1 ? '' : 's'} waiting for a decision.`
