@@ -63,6 +63,15 @@ const subtitle = computed(() => {
 // a button the user has already left doesn't announce itself. So the summary
 // carries the page position too, unlike the count-only summaries on the
 // proposal screens.
+//
+// `onSettled` moves focus back to the heading, the same fix decisions.vue
+// makes for the same cause: the whole list is gated on `v-if="!loading"`, so
+// every reload — after a role change, after paging — unmounts and remounts
+// the row that was just acted on. The activated button goes with it (and
+// would become `disabled` even if it survived), dropping focus to <body> and
+// making a keyboard admin tab past the entire table again. `flush: 'post'`
+// inside the composable is what makes this land after the remount.
+const heading = ref<HTMLHeadingElement>()
 const announcement = useResultAnnouncer(
   () => loading.value,
   () => error.value
@@ -70,6 +79,7 @@ const announcement = useResultAnnouncer(
     : meta.value.last_page > 1
       ? `${subtitle.value} · page ${meta.value.current_page} of ${meta.value.last_page}`
       : subtitle.value,
+  () => heading.value?.focus(),
 )
 
 const roleLabel: Record<Role, string> = { speaker: 'Speaker', reviewer: 'Reviewer', admin: 'Administrator' }
@@ -77,10 +87,10 @@ const roleLabel: Record<Role, string> = { speaker: 'Speaker', reviewer: 'Reviewe
 // speaker and reviewer are neutral. Status hues (pending/approved/rejected)
 // are pointedly not reused here — they mean a proposal's decision, and
 // borrowing them for a role would make two unrelated things look alike.
-const roleBadge: Record<Role, string> = {
-  speaker:  'bg-sunken text-ink-70 border-rule',
-  reviewer: 'bg-sunken text-ink-70 border-rule',
-  admin:    'bg-accent-tint text-accent-tint-fg border-accent-tint',
+const roleTone: Record<Role, 'accent' | 'neutral'> = {
+  speaker:  'neutral',
+  reviewer: 'neutral',
+  admin:    'accent',
 }
 
 // A new account lands at the end of the list, so on a full page it may not
@@ -98,7 +108,9 @@ function onCreated() {
 
     <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
       <div>
-        <h1 class="t-section text-ink">Users</h1>
+        <!-- tabindex="-1": not in the tab order, only a programmatic focus
+             target for the post-reload focus restoration above. -->
+        <h1 ref="heading" tabindex="-1" class="t-section text-ink">Users</h1>
         <p v-if="!error" class="t-body text-ink-45 mt-1.5">{{ subtitle }}</p>
       </div>
       <UiButton class="self-start sm:self-auto" @click="inviting = true">Invite a user</UiButton>
@@ -130,11 +142,8 @@ function onCreated() {
         </div>
 
         <div class="flex items-center gap-2 flex-wrap mt-3">
-          <span class="rounded-badge border px-2 py-0.5 t-label inline-flex items-center" :class="roleBadge[u.role]">{{ roleLabel[u.role] }}</span>
-          <span v-if="!u.is_verified" class="rounded-badge border px-2 py-0.5 t-label inline-flex items-center gap-1.5 bg-pending-bg text-pending-fg border-pending-br">
-            <span class="w-1.5 h-1.5 rounded-full bg-current opacity-60" aria-hidden="true" />
-            Unverified
-          </span>
+          <AdminUserBadge :label="roleLabel[u.role]" :tone="roleTone[u.role]" />
+          <AdminUserBadge v-if="!u.is_verified" label="Unverified" tone="pending" dot />
         </div>
 
         <!-- An admin cannot change their own role (the API refuses it with a
@@ -164,7 +173,10 @@ function onCreated() {
            (the outer overflow-hidden only rounds the corners at rest). -->
       <div class="overflow-x-auto">
         <table class="w-full min-w-[900px] border-collapse">
-          <caption class="sr-only">User accounts, 15 per page</caption>
+          <!-- The page size comes off the response, not a literal: the
+               server owns it, and a hardcoded 15 becomes a lie the moment
+               its default changes. -->
+          <caption class="sr-only">User accounts, {{ meta.per_page }} per page</caption>
           <thead>
             <tr class="bg-paper border-b border-rule text-left">
               <th scope="col" class="t-label text-ink-70 py-3.5 pl-6 pr-3">Person</th>
@@ -186,7 +198,7 @@ function onCreated() {
                 </div>
               </td>
               <td class="py-[18px] px-3">
-                <span class="rounded-badge border px-2 py-0.5 t-label inline-flex items-center" :class="roleBadge[u.role]">{{ roleLabel[u.role] }}</span>
+                <AdminUserBadge :label="roleLabel[u.role]" :tone="roleTone[u.role]" />
               </td>
               <!-- The unverified case is the one that carries an action, so
                    it gets the badge and the date it has been waiting; a
@@ -194,10 +206,7 @@ function onCreated() {
               <td class="py-[18px] px-3">
                 <span v-if="u.is_verified" class="t-label text-ink-45">Verified</span>
                 <template v-else>
-                  <span class="rounded-badge border px-2 py-0.5 t-label inline-flex items-center gap-1.5 bg-pending-bg text-pending-fg border-pending-br">
-                    <span class="w-1.5 h-1.5 rounded-full bg-current opacity-60" aria-hidden="true" />
-                    Unverified
-                  </span>
+                  <AdminUserBadge label="Unverified" tone="pending" dot />
                   <span class="t-label text-ink-45 block mt-1">Added {{ relativeTime(u.created_at) }}</span>
                 </template>
               </td>
