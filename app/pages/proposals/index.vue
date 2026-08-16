@@ -55,6 +55,32 @@ watch(() => route.query.search, (v) => {
 // breaking the back button. Clear it on unmount so leaving mid-type can't
 // leak a stray query param onto the next page.
 onUnmounted(() => clearTimeout(searchTimer))
+
+// Live updates, offered rather than applied — see the store's notePending()
+// for why this list is never patched in place.
+//
+// Subscribed by role, matching API.md §06's channel table: reviewers hear
+// about submissions and edits, admins about submissions, and everyone hears
+// about decisions on their OWN proposals, which is what changes a status badge
+// already on this page. A speaker is on no role channel and does not need one —
+// nobody else can create a proposal they can see.
+//
+// All of this is a no-op with no socket: useRealtime() subscribes to nothing,
+// `pending` stays 0, the bar never renders, and the page is exactly what it
+// was before this feature existed.
+const liveChannels = computed(() => {
+  const names: string[] = []
+  if (auth.user) names.push(channels.user(auth.user.id))
+  if (auth.role === 'reviewer') names.push(channels.reviewers)
+  if (auth.role === 'admin') names.push(channels.admins)
+  return names
+})
+
+useRealtime(liveChannels.value, {
+  'proposal.created': () => store.notePending(),
+  'proposal.updated': () => store.notePending(),
+  'proposal.status_changed': () => store.notePending(),
+})
 </script>
 
 <template>
@@ -72,6 +98,8 @@ onUnmounted(() => clearTimeout(searchTimer))
       <!-- Announces only the count, and only after a real, user-driven
            change — see useResultAnnouncer for the initial-load skip. -->
       <p aria-live="polite" class="sr-only">{{ announcement }}</p>
+
+      <UiNewActivity :count="store.pending" noun="proposal update" @refresh="load" />
 
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <div>

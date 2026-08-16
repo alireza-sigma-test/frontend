@@ -52,6 +52,16 @@ const announcement = useResultAnnouncer(
   () => store.error ? 'Could not load the queue.' : subtitle.value,
   () => heading.value?.focus(),
 )
+
+// Offered, never applied — and the case for that is stronger here than on the
+// list. This queue is sorted by rating, so a review landing on any proposal
+// can reorder rows an admin is in the middle of deciding. Reordering the
+// options under someone's cursor mid-decision is the one thing this screen
+// must not do.
+useRealtime(channels.admins, {
+  'proposal.created': () => store.notePending(),
+  'review.created': () => store.notePending(),
+})
 </script>
 
 <template>
@@ -71,6 +81,10 @@ const announcement = useResultAnnouncer(
           <p class="t-label text-ink-45 mt-1">{{ c.label }}</p>
         </div>
       </div>
+    </div>
+
+    <div class="mt-8">
+      <UiNewActivity :count="store.pending" noun="item in the queue" @refresh="load" />
     </div>
 
     <!-- Skeleton matches the final layout's own chrome (a bordered card),

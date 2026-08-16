@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { RealtimeEvent } from '~/composables/useRealtime'
 import type { ProposalDetail } from '~/types/api'
 
 const route = useRoute()
@@ -50,6 +51,58 @@ const fileSize = (b: number) =>
   b < 1024 ? `${b} B`
     : b < 1024 * 1024 ? `${(b / 1024).toFixed(1)} KB`
       : `${(b / 1024 / 1024).toFixed(1)} MB`
+
+// Live updates. Unlike the two list screens, this one DOES apply them: there
+// is one record on the page, so nothing can reorder or appear above what the
+// reader is looking at, and a decision the speaker is waiting for is exactly
+// the thing worth showing without asking.
+//
+// Every handler ignores events about other proposals — a reviewer or admin is
+// subscribed to a whole role channel, so most of what arrives here is about
+// something else entirely.
+const auth = useAuthStore()
+
+const liveChannels = computed(() => {
+  const names: string[] = []
+  if (auth.user) names.push(channels.user(auth.user.id))
+  if (auth.role === 'reviewer') names.push(channels.reviewers)
+  if (auth.role === 'admin') names.push(channels.admins)
+  return names
+})
+
+function isThisProposal(event: RealtimeEvent) {
+  return event.proposal.id === id
+}
+
+// A refetch triggered by somebody ELSE's action must not pull focus. `load()`
+// settles the announcer, and the announcer's onSettled moves focus to the
+// heading — right after the reader submits a review and the form they were in
+// is remounted, wrong when an admin three desks away approves something.
+// The announcement still fires; only the focus move is suppressed.
+function reload() {
+  announcement.suppressOnce()
+  load()
+}
+
+useRealtime(liveChannels.value, {
+  // Patch the badge from the payload AND refetch. The payload carries the new
+  // status, which is what makes the badge change the instant the decision is
+  // made — but a decided proposal is also no longer editable or reviewable,
+  // and `can` is computed server-side from the policy. Patching alone would
+  // leave an Edit button that 403s; refetching alone would leave the badge
+  // stale for the length of a round trip.
+  'proposal.status_changed': (event) => {
+    if (!isThisProposal(event) || !proposal.value) return
+    proposal.value.status = event.proposal.status
+    reload()
+  },
+  // Refetch rather than widen the payload. A new review changes the average
+  // rating, the review count and the review list — none of which the event
+  // carries, and none of which it should: it goes to a role channel, and the
+  // rating is not the author's to receive unbidden.
+  'review.created': event => isThisProposal(event) && reload(),
+  'proposal.updated': event => isThisProposal(event) && reload(),
+})
 </script>
 
 <template>

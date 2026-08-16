@@ -15,6 +15,9 @@ export const useProposalsStore = defineStore('proposals', {
     counts: { all: 0, pending: 0, approved: 0, rejected: 0 } as Counts,
     loading: false,
     error: '' as string,
+    // Live events that have arrived since this list was fetched, counted
+    // rather than applied. See notePending().
+    pending: 0,
   }),
 
   actions: {
@@ -34,6 +37,9 @@ export const useProposalsStore = defineStore('proposals', {
         // `counts` is deliberately unaffected by search/tags/status, so the
         // sidebar tallies stay stable while filtering — API.md guarantees this.
         this.counts = res.counts
+        // This response already contains everything those events were telling
+        // us about, so the banner has nothing left to offer.
+        this.pending = 0
       } catch (e) {
         if (requestId !== requestSeq) return
         this.error = (e as ApiError).message
@@ -43,6 +49,25 @@ export const useProposalsStore = defineStore('proposals', {
         // flip `loading` false out from under it.
         if (requestId === requestSeq) this.loading = false
       }
+    },
+
+    /**
+     * A live event arrived. Count it; do not touch `items`.
+     *
+     * Inserting the row would be wrong three ways, and all three are silent:
+     * this list is filtered and sorted **server-side** (search, tags, status,
+     * sort=rating), so a client-side insert can show a proposal the active
+     * filter excludes and put it in a position the server would not; on page 2
+     * the new item belongs on page 1; and a row appearing above what someone
+     * is reading moves the page under their cursor, which is worse than no
+     * live update at all.
+     *
+     * So the screen offers, and the reader decides. The count is the whole
+     * state — the payload is deliberately thin and carries nothing this list
+     * could render without a fetch anyway.
+     */
+    notePending() {
+      this.pending += 1
     },
   },
 })

@@ -17,6 +17,20 @@ import type { ChannelAuthorizationCallback, ChannelAuthorizationData } from 'pus
  * app must behave exactly as it did before this feature existed. So every path
  * below either succeeds or logs and returns — none of them throw, and none of
  * them block a render.
+ *
+ * Two things about the socket-down path, both measured rather than assumed:
+ *
+ *   * The browser writes `WebSocket connection to 'ws://…' failed:
+ *     ERR_CONNECTION_REFUSED` to the console itself, per attempt. That is the
+ *     WebSocket API's own log, like a failed image, and **no JavaScript can
+ *     suppress it** — it is not thrown, not passed to a handler, and does not
+ *     reach pusher-js at all. Console errors here are expected noise, not a
+ *     defect. Every screen still renders; verified across all five.
+ *   * pusher-js keeps retrying with backoff, and that is left alone
+ *     deliberately. A reviewer's list opened while Reverb was down reconnected
+ *     on its own once it came back and received the next event without a
+ *     reload (`.superpowers/harness/socket-recovery.mjs`). Capping the retries
+ *     would trade that recovery for slightly quieter devtools.
  */
 
 type EchoClient = Echo<'reverb'>
