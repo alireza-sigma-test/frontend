@@ -3,6 +3,7 @@ import type { Proposal } from '~/types/api'
 
 definePageMeta({ middleware: 'role', roles: ['speaker'] })
 
+const auth = useAuthStore()
 const tags = useTagsStore()
 const { push } = useToast()
 
@@ -56,7 +57,21 @@ async function submit() {
       <p class="t-eyebrow text-ink-45">New proposal</p>
       <h1 class="t-section text-ink mt-3">Tell us about your talk</h1>
 
-      <form class="mt-9 flex flex-col gap-[30px]" @submit.prevent="submit">
+      <!-- Gated on auth.user, not isAuthenticated: logout() nulls the user
+           synchronously while this page may still be mounted. No redirect —
+           a redirect away from a page the speaker deliberately navigated to
+           is disorienting, and the layout's banner is already saying the
+           same thing. -->
+      <UiEmptyState
+        v-if="auth.user && !auth.isVerified"
+        title="Confirm your email to submit a proposal"
+        body="This form opens back up as soon as your address is confirmed — it only takes a minute."
+        class="mt-9"
+      >
+        <UiButton to="/verify-email" size="sm">Enter your code</UiButton>
+      </UiEmptyState>
+
+      <form v-else-if="auth.user" class="mt-9 flex flex-col gap-[30px]" @submit.prevent="submit">
         <UiInput
           v-model="form.title" label="Title" required counter :maxlength="120"
           help="Reviewers see this first." :error="errors.title?.[0]"
