@@ -113,7 +113,21 @@ function onCreated() {
         <h1 ref="heading" tabindex="-1" class="t-section text-ink">Users</h1>
         <p v-if="!error" class="t-body text-ink-45 mt-1.5">{{ subtitle }}</p>
       </div>
-      <UiButton class="self-start sm:self-auto" @click="inviting = true">Invite a user</UiButton>
+      <!-- Gated on auth.isVerified, not a route guard: invite, role and
+           reinvite all sit inside the API's `verified` group while
+           `GET /admin/users` deliberately does not (routes/api.php) — so an
+           unverified admin can load this screen but every write 403s with
+           `email_unverified`. ProposalResource's `can` object would normally
+           make this automatic; UserResource exposes none, so nothing else on
+           this page derives it. The list itself stays visible — only the
+           three write affordances (this button, and AdminRoleControl /
+           AdminReinviteButton per row below) go away, with this line
+           standing in for all three rather than repeating the explanation
+           once per row. -->
+      <UiButton v-if="auth.isVerified" class="self-start sm:self-auto" @click="inviting = true">Invite a user</UiButton>
+      <p v-else class="t-label text-ink-45 max-w-[30ch] sm:text-right">
+        Confirm your email address to invite people, change roles or re-invite accounts.
+      </p>
     </div>
 
     <!-- Skeleton matches the final layout's own chrome (a bordered card),
@@ -153,12 +167,14 @@ function onCreated() {
              `auth.user` can only ever fall through to the control, never
              label every row as the reader's own account. -->
         <p v-if="auth.user?.id === u.id" class="t-label text-ink-45 mt-4">Your own account — roles are changed by another administrator.</p>
-        <div v-else class="mt-4">
+        <!-- See the "Invite a user" comment above: an unverified admin gets
+             no role control on any row, not just their own. -->
+        <div v-else-if="auth.isVerified" class="mt-4">
           <AdminRoleControl :user="u" @changed="load" />
         </div>
 
-        <!-- Only unverified users can be re-invited. -->
-        <div v-if="!u.is_verified" class="mt-3 flex justify-end">
+        <!-- Only unverified users can be re-invited, and only by a verified admin. -->
+        <div v-if="!u.is_verified && auth.isVerified" class="mt-3 flex justify-end">
           <AdminReinviteButton :user="u" />
         </div>
       </UiCard>
@@ -212,10 +228,11 @@ function onCreated() {
               </td>
               <td class="py-[18px] px-3">
                 <span v-if="auth.user?.id === u.id" class="t-label text-ink-45 block text-right">Your account</span>
-                <AdminRoleControl v-else :user="u" @changed="load" />
+                <AdminRoleControl v-else-if="auth.isVerified" :user="u" @changed="load" />
+                <span v-else class="t-label text-ink-45 block text-right" aria-hidden="true">—</span>
               </td>
               <td class="py-[18px] pl-3 pr-6 text-right">
-                <AdminReinviteButton v-if="!u.is_verified" :user="u" />
+                <AdminReinviteButton v-if="!u.is_verified && auth.isVerified" :user="u" />
                 <span v-else class="t-label text-ink-45" aria-hidden="true">—</span>
               </td>
             </tr>
