@@ -10,10 +10,12 @@ const errors = ref<Record<string, string[]>>({})
 const busy = ref(false)
 const roleHeadingId = useId()
 
+// Two options, where the approved mockup shows three. Administrators are
+// created by administrators — POST /api/register returns 422 for
+// role: admin — so offering it would present a choice that cannot succeed.
 const roles = [
   { value: 'speaker',  label: 'Speaker',       description: 'Submit proposals and follow their status' },
   { value: 'reviewer', label: 'Reviewer',      description: 'Read every proposal, rate and comment' },
-  { value: 'admin',    label: 'Administrator', description: 'Set the final status of any proposal' },
 ]
 
 const FORM_FIELDS = ['name', 'email', 'password', 'password_confirmation', 'role']

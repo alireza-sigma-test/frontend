@@ -1,7 +1,7 @@
 export type Role = 'speaker' | 'reviewer' | 'admin'
 export type Status = 'pending' | 'approved' | 'rejected'
 
-export interface User { id: number; name: string; email: string; role: Role; initials: string; created_at: string }
+export interface User { id: number; name: string; email: string; role: Role; initials: string; created_at: string; email_verified_at: string | null; is_verified: boolean }
 export interface Tag { id: number; name: string; slug: string; proposals_count?: number }
 export interface Attachment { filename: string; size_bytes: number; mime: string; url: string }
 

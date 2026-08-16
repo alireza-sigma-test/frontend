@@ -11,6 +11,9 @@ export const useAuthStore = defineStore('auth', {
     role: (s): Role | null => s.user?.role ?? null,
     isSpeaker: s => s.user?.role === 'speaker',
     isAdmin:   s => s.user?.role === 'admin',
+    // Derived from the API's own boolean rather than re-deriving it from the
+    // timestamp, so the client cannot disagree with the server about who may write.
+    isVerified: s => s.user?.is_verified === true,
   },
 
   actions: {
@@ -54,6 +57,13 @@ export const useAuthStore = defineStore('auth', {
       this.token = token
       this.user = user
       if (import.meta.client) localStorage.setItem(TOKEN_KEY, token)
+    },
+
+    // Separate from `set`: verifying doesn't change the token, so callers
+    // would otherwise have to pass `auth.token!` back into the store it came
+    // from. This only ever replaces the user.
+    setUser(user: User) {
+      this.user = user
     },
 
     clear() {

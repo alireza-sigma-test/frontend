@@ -32,9 +32,12 @@ const roleLabel = computed(() => (auth.role ? auth.role.charAt(0).toUpperCase() 
           <NuxtLink to="/proposals" class="t-label text-ink-45 hover:text-ink">Proposals</NuxtLink>
           <NuxtLink v-if="auth.isSpeaker" to="/proposals/new" class="t-label text-ink-45 hover:text-ink">Submit</NuxtLink>
           <NuxtLink v-if="auth.isAdmin" to="/admin/decisions" class="t-label text-ink-45 hover:text-ink">Decisions</NuxtLink>
+          <NuxtLink v-if="auth.isAdmin" to="/admin/users" class="t-label text-ink-45 hover:text-ink">Users</NuxtLink>
         </nav>
       </div>
     </header>
+
+    <UserVerificationBanner />
 
     <!-- No named slots: app.vue already wraps every page in this layout, so a
          page wrapping itself in <NuxtLayout> again would nest two of them.
