@@ -55,7 +55,7 @@ watch(page, load, { immediate: true })
 // as soon as there is a second page.
 const subtitle = computed(() => {
   const n = meta.value.total
-  return `${n} ${n === 1 ? 'person' : 'people'} · oldest first`
+  return `${n} ${n === 1 ? 'person' : 'people'}`
 })
 
 // Paging is the one action here whose result is otherwise silent — the

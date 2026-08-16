@@ -42,8 +42,10 @@ async function submit() {
   try {
     await useApi().post('/admin/users', { ...form })
     // Read the address off the form, not the 201 body: this is the last
-    // moment it's on screen, and the row itself lands at the end of the
-    // list (oldest-first ordering), possibly on another page.
+    // moment it's on screen. The new row typically lands at the end of the
+    // list — the repository issues a plain, unordered `paginate()`, so
+    // nothing here actually guarantees it — meaning it may not be on the
+    // current page.
     push(`Invitation sent to ${form.email}.`)
     emit('created')
   } catch (e) {
