@@ -68,6 +68,40 @@
      a 1px rule does the separating) and lifted, for overlays only (menu,
      modal, toast). Neutral-warm (ink-tinted), never blue. */
   --shadow-lifted: 0 1px 2px rgb(26 24 21 / 4%), 0 8px 24px rgb(26 24 21 / 6%);
+
+  /* Motion easings. Named for intent, not value, the same way the colour
+     tokens are: a hover eases out with `out-soft`, something that both
+     enters and exits (a toast, a modal) eases with `in-out-soft`.
+     `--ease-*` is a real Tailwind v4 theme namespace, so a plain `@theme`
+     entry is enough — it emits `.ease-out-soft` / `.ease-in-out-soft`
+     utilities directly. Confirmed against this project's own build; see
+     the `@theme static` block below for why the durations can't sit here
+     too. */
+  --ease-out-soft:    cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out-soft: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Motion durations, in their OWN `@theme static` block — do not merge this
+   back into the `@theme` block above. Measured against this project's real
+   Tailwind v4.3.3 build, twice: unlike `--ease-*`, there is no bare
+   `duration-<name>` utility for named `--duration-*` keys — putting the
+   literal class `duration-quick` in a scanned scratch element still
+   compiled to nothing, confirmed in this project's own generated CSS. A
+   plain (non-`static`) `@theme` entry for these keys also doesn't reliably
+   reach `:root` either. So a call site writing `class="duration-quick"`
+   is a silent no-op twice over — the same failure shape as this codebase's
+   `<Foo>` vs `<ProposalFoo>` trap, just quieter, because nothing errors.
+   `static` forces the custom properties into `:root` unconditionally,
+   which is what makes them usable at all: call sites must reference them
+   as `duration-[var(--duration-quick)]` (Tailwind's arbitrary-value form),
+   never as a bare `duration-quick` class. Named for intent, not value,
+   same as the easings above: a hover is `instant`, a list-row or toast
+   update is `quick`, a modal or overlay is `moderate`. Three durations is
+   deliberate — a longer scale invites arbitrary choices. */
+@theme static {
+  --duration-instant:  120ms;
+  --duration-quick:    180ms;
+  --duration-moderate: 260ms;
 }
 
 /* Seven named type styles — the system defines exactly these. */
@@ -87,3 +121,17 @@ html, body { background: var(--color-paper); color: var(--color-ink); -webkit-fo
 
 /* Terracotta focus ring everywhere — the design system's only focus treatment. */
 :focus-visible { outline: 2px solid var(--color-terracotta); outline-offset: 2px; }
+
+/* One global guard rather than a `motion-reduce:` variant remembered at every
+   call site. Vestibular disorders make large motion genuinely painful, and
+   the failure mode of forgetting one guard is worse than the cost of a blunt
+   rule. `!important` because it must beat utilities on the elements
+   themselves. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
