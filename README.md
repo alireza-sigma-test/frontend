@@ -271,7 +271,7 @@ oversight, and it's why the gaps below are absences rather than stand-ins.
 
 ## Tests
 
-None, deliberately. The backend carries the whole suite (124 tests); a thin
-component suite here would have cost time without covering the logic that
-actually matters — server-side policies, validation and status transitions.
-Stated as a decision rather than left as a gap.
+None, deliberately. The backend carries the whole suite (241 tests, 736
+assertions); a thin component suite here would have cost time without
+covering the logic that actually matters — server-side policies, validation
+and status transitions. Stated as a decision rather than left as a gap.
