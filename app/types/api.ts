@@ -15,7 +15,12 @@ export interface Review {
   reviewer?: Pick<User, 'id' | 'name' | 'initials'>
 }
 
-export interface ProposalCan { edit: boolean; review: boolean; change_status: boolean }
+export interface ProposalCan { edit: boolean; review: boolean; change_status: boolean; view_summary: boolean }
+
+/** Four states, and the last two are not the same thing: `failed` means the job
+ *  ran and gave up, `unavailable` means this deployment has no API key — a
+ *  feature switched off, not a broken one. */
+export type SummaryStatus = 'pending' | 'ready' | 'failed' | 'unavailable'
 
 export interface Proposal {
   id: number; ref: string; title: string; description: string; status: Status
@@ -26,6 +31,11 @@ export interface Proposal {
   reviews_count: number
   my_review: Review | null
   can: ProposalCan
+  /** Optional because the API OMITS these keys entirely for anyone who may not
+   *  read them — a speaker never learns that a summary of their own proposal
+   *  exists. Branch on `can.view_summary`, not on key presence. */
+  summary?: string | null
+  summary_status?: SummaryStatus
   created_at: string; updated_at: string
 }
 

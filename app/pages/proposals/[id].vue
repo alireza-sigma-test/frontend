@@ -227,6 +227,21 @@ useRealtime(myChannels(), {
       </div>
 
       <aside class="flex flex-col gap-5">
+        <!-- Above the review form, because it is a reading aid and belongs
+             before the point of judgement — a summary read after forming an
+             opinion is not an aid, it is a second opinion.
+
+             Gated on can.view_summary, the policy's own answer, rather than on
+             the presence of `summary`: the API omits both keys entirely for a
+             speaker, so key-presence would work today and silently start
+             leaking the moment the shape changed. A speaker sees nothing at
+             all here — no card, no heading, no empty box. -->
+        <ProposalSummary
+          v-if="proposal.can.view_summary"
+          :status="proposal.summary_status"
+          :summary="proposal.summary"
+        />
+
         <!-- app-screens.html:377-408 — the review form sits above Aggregate,
              not below it as the brief's snippet had them. -->
         <ProposalReviewForm
