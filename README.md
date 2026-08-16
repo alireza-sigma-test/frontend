@@ -250,16 +250,20 @@ oversight, and it's why the gaps below are absences rather than stand-ins.
   not implemented. It was never one of the five screens in this task's
   scope; it needs Laravel Reverb, a later backend tier.
 - **No rating-distribution bars on the detail screen.** The average and
-  review count render; the per-star breakdown doesn't, because the API has
-  no `rating_distribution` field to source it from.
+  review count render; the per-star breakdown doesn't. `GET
+  /proposals/{id}` does return a `rating_distribution` field (verified
+  live) — the client just doesn't read it: neither `ProposalDetail` in
+  `types/api.ts` nor the detail page consumes it yet.
 - **No Edit control on a proposal.** `can.edit` is `true` for the author
   while the proposal is still pending — the policy is owner *and* pending,
-  not owner alone — but `PATCH /proposals/{id}` isn't among the API's 10
-  live endpoints, so there's nothing for an edit button to call.
-- **The admin queue's counters come from `/proposals`' own `counts` block**,
-  not a `/stats` endpoint — there isn't one. `counts` is unaffected by the
-  queue's own status/sort filter, which is what makes it usable as a stable
-  total.
+  not owner alone — but there's no edit form wired up to call it.
+  `PATCH /proposals/{id}` exists on the API (`routes/api.php`, verified
+  live); the client simply never built the button for it.
+- **The admin queue's counters come from `/proposals`' own `counts`
+  block, not `GET /stats`.** The endpoint exists (verified live —
+  `total`/`pending`/`approved`/`rejected`/`ready_to_decide`), but `counts`
+  is unaffected by the queue's own status/sort filter, which made it the
+  simpler source for a stable total; nothing on this screen calls `/stats`.
 - **No delete or deactivate control on `/admin/users`.** Roles can be
   changed but accounts persist — removing one raises a real cascade question
   (orphan, reassign or soft-delete its proposals and reviews) that's larger
