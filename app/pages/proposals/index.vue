@@ -78,7 +78,10 @@ onUnmounted(() => clearTimeout(searchTimer))
           <h1 class="t-section text-ink">Proposals</h1>
           <p v-if="!store.error" class="t-body text-ink-45 mt-1.5">{{ resultLine }}</p>
         </div>
-        <div class="flex items-center gap-3 flex-wrap">
+        <!-- items-end, not -center: UiInput renders a label above its field, making
+             it taller than the buttons. Centering aligns against that full height and
+             leaves the buttons floating above the field instead of level with it. -->
+        <div class="flex items-end gap-3 flex-wrap">
           <UiInput v-model="search" label="Search" placeholder="Search titles…" />
           <UiButton variant="secondary" size="sm" @click="resetAll">Reset</UiButton>
           <UiButton v-if="auth.user && auth.isSpeaker" to="/proposals/new" size="sm">Submit a proposal</UiButton>
