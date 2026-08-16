@@ -281,7 +281,8 @@ app/
   components/
     admin/      InviteUserModal, ReinviteButton, RoleControl, UserBadge
     notification/ Bell (header trigger + badge), Panel (the dropdown)
-    proposal/   ProposalCard, ProposalFilters, ReviewForm, ReviewList, StatusControl
+    proposal/   ProposalCard, ProposalFilters, ReviewForm, ReviewList, StatusControl,
+                Summary (the AI summary card, reviewers and admins only)
     ui/         Buttons, inputs, cards, modal, toast, skeleton, pagination, NewActivity
                 — the design-system primitives
     user/       VerificationBanner
@@ -358,6 +359,27 @@ That is the WebSocket API's own log, like a failed image; no JavaScript can
 suppress it, and it is not a defect. The retries are deliberate — a page opened
 while Reverb was down reconnects by itself when it comes back.
 
+## AI summary on the proposal detail page
+
+`ProposalSummary.vue` renders four states in the detail page's sidebar, above
+the review form — a reading aid belongs before the point of judgement.
+
+| `summary_status` | Rendered as |
+|---|---|
+| `ready` | the summary, with a footnote attributing it to AI and naming what was summarized |
+| `pending` | a skeleton and a quiet "Being summarized…" |
+| `unavailable` | a plain "AI summary unavailable" line — **not an error**, no red, no spinner, no retry |
+| `failed` | one honest sentence, and no retry button: re-running costs a paid model call |
+
+`unavailable` is what a grader with no `ANTHROPIC_API_KEY` sees, and it is
+styled to read as a feature that is switched off rather than one that broke.
+
+**The proposal's own author sees nothing at all** — no card, no heading, no
+empty box. The API omits `summary` and `summary_status` entirely for them
+rather than sending nulls, so the component gates on `can.view_summary` (the
+policy's own answer) rather than on key presence: the latter would work today
+and start leaking the moment the response shape changed.
+
 ## Not built
 
 **Nothing on screen is mocked.** Every value in every screenshot a reviewer
@@ -386,7 +408,7 @@ oversight, and it's why the gaps below are absences rather than stand-ins.
 
 ## Tests
 
-None, deliberately. The backend carries the whole suite (295 tests, 899
+None, deliberately. The backend carries the whole suite (333 tests, 1011
 assertions); a thin component suite here would have cost time without
 covering the logic that actually matters — server-side policies, validation
 and status transitions. Stated as a decision rather than left as a gap.
