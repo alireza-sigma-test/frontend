@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import type { Counts, Paginated, Proposal } from '~/types/api'
+import type { Counts, PaginatedProposals, Proposal } from '~/types/api'
 
 // Module-level, not Pinia state: a plain sequence counter used only to
 // detect and discard stale responses when overlapping fetches race (rapid
@@ -27,7 +27,7 @@ export const useProposalsStore = defineStore('proposals', {
       this.error = ''
       try {
         const qs = new URLSearchParams(Object.entries(query).filter(([, v]) => v !== '' && v != null)).toString()
-        const res = await useApi().get<Paginated<Proposal>>(`/proposals${qs ? `?${qs}` : ''}`)
+        const res = await useApi().get<PaginatedProposals>(`/proposals${qs ? `?${qs}` : ''}`)
         // A newer request was issued while this one was in flight — its
         // response describes the URL/filters as they are now, this one
         // describes filters the user has already moved on from. Discard.

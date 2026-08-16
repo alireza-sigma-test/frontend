@@ -41,6 +41,11 @@ export default defineNuxtPlugin(() => {
 
   let echo: EchoClient | null = null
 
+  // pusher-js's own connection state, surfaced so the header can say plainly
+  // whether live updates are working. A silent enhancement that silently is
+  // not happening reads as an app that has stopped updating.
+  const state = ref<'connected' | 'connecting' | 'offline'>('offline')
+
   function connect(): void {
     if (echo || !auth.token) return
 
@@ -91,11 +96,22 @@ export default defineNuxtPlugin(() => {
           },
         }),
       }) as EchoClient
+
+      state.value = 'connecting'
+      // Pusher's state machine, mapped onto the three words the header can
+      // usefully say. 'unavailable' and 'failed' are both "not right now, still
+      // trying"; 'disconnected' is the deliberate teardown on logout.
+      echo.connector.pusher.connection.bind('state_change', ({ current }: { current: string }) => {
+        state.value = current === 'connected'
+          ? 'connected'
+          : current === 'connecting' ? 'connecting' : 'offline'
+      })
     }
     catch (error) {
       // A failure here means no live updates. It must never mean no app.
       console.warn('[echo] could not start; continuing without real-time', error)
       echo = null
+      state.value = 'offline'
     }
   }
 
@@ -109,6 +125,7 @@ export default defineNuxtPlugin(() => {
       console.warn('[echo] disconnect failed', error)
     }
     echo = null
+    state.value = 'offline'
   }
 
   // Drive the socket off `auth.token`, not off a login callback: `restore()`
@@ -143,9 +160,9 @@ export default defineNuxtPlugin(() => {
           catch { /* leaving a channel we never joined is not an error */ }
         },
 
-        get connected(): boolean {
-          return echo !== null
-        },
+        /** Readonly so a component cannot claim a connection the socket does
+         *  not have. */
+        state: readonly(state),
       },
     },
   }
