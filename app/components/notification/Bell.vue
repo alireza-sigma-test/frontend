@@ -1,6 +1,5 @@
 <script setup lang="ts">
 const store = useNotificationsStore()
-const auth = useAuthStore()
 const { push } = useToast()
 
 const open = ref(false)
@@ -19,21 +18,12 @@ onMounted(() => store.fetch())
 // this one does not — useToast has no action slot, and the design's own note
 // says a toast must never hold the only copy of an action. The bell beside it
 // holds the same item, permanently.
-useRealtime(
-  computed(() => {
-    const names: string[] = []
-    if (auth.user) names.push(channels.user(auth.user.id))
-    if (auth.role === 'reviewer') names.push(channels.reviewers)
-    if (auth.role === 'admin') names.push(channels.admins)
-    return names
-  }).value,
-  {
-    'proposal.created': e => announce(`${e.actor.name} submitted “${e.proposal.title}”`),
-    'proposal.updated': e => announce(`${e.actor.name} updated “${e.proposal.title}”`),
-    'proposal.status_changed': e => announce(`“${e.proposal.title}” was ${e.proposal.status}`),
-    'review.created': e => announce(`${e.actor.name} reviewed “${e.proposal.title}”`),
-  },
-)
+useRealtime(myChannels(), {
+  'proposal.created': e => announce(`${e.actor.name} submitted “${e.proposal.title}”`),
+  'proposal.updated': e => announce(`${e.actor.name} updated “${e.proposal.title}”`),
+  'proposal.status_changed': e => announce(`“${e.proposal.title}” was ${e.proposal.status}`),
+  'review.created': e => announce(`${e.actor.name} reviewed “${e.proposal.title}”`),
+})
 
 function announce(message: string) {
   store.noteIncoming()

@@ -57,3 +57,28 @@ export const channels = {
   reviewers: 'role.reviewer',
   admins: 'role.admin',
 } as const
+
+/**
+ * Every channel the signed-in user is entitled to, per API.md §06's table.
+ *
+ * A plain function, not a computed: `auth.global.ts` awaits `restore()` before
+ * any guarded navigation resolves, so the user is already known by the time a
+ * page's setup runs, and `useRealtime()` subscribes once on mount either way.
+ * Wrapping it in a computed and reading `.value` would only look reactive.
+ *
+ * Returns nothing when the user is unknown — `restore()` leaves the token in
+ * place if `GET /me` fails for any reason other than a 401, so `auth.user` can
+ * legitimately be null with a token present. No user, no channels, no crash.
+ */
+export function myChannels(): string[] {
+  const auth = useAuthStore()
+  const names: string[] = []
+
+  if (!auth.user) return names
+
+  names.push(channels.user(auth.user.id))
+  if (auth.role === 'reviewer') names.push(channels.reviewers)
+  if (auth.role === 'admin') names.push(channels.admins)
+
+  return names
+}

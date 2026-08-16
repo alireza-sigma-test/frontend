@@ -38,22 +38,12 @@ const announcement = useResultAnnouncer(
 // Same offer-don't-apply rule as the two list screens: this one is paginated
 // and strictly time-ordered, so a live insert would push every row down and
 // silently shift what page 2 contains under anyone already reading it.
-const auth = useAuthStore()
-useRealtime(
-  computed(() => {
-    const names: string[] = []
-    if (auth.user) names.push(channels.user(auth.user.id))
-    if (auth.role === 'reviewer') names.push(channels.reviewers)
-    if (auth.role === 'admin') names.push(channels.admins)
-    return names
-  }).value,
-  {
-    'proposal.created': () => pending.value++,
-    'proposal.updated': () => pending.value++,
-    'proposal.status_changed': () => pending.value++,
-    'review.created': () => pending.value++,
-  },
-)
+useRealtime(myChannels(), {
+  'proposal.created': () => pending.value++,
+  'proposal.updated': () => pending.value++,
+  'proposal.status_changed': () => pending.value++,
+  'review.created': () => pending.value++,
+})
 
 // app-screens.html:493-505 writes each row as a sentence — "Ilya Petrov
 // submitted Type-safe APIs end to end" — with the raw event name beneath it.

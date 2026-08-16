@@ -43,11 +43,15 @@ export const useNotificationsStore = defineStore('notifications', {
       const target = this.items.find(n => n.id === id)
       if (!target || target.read_at) return
 
-      // Optimistic: the dot and the badge answer the click immediately. The
-      // endpoint returns the authoritative count in X-Unread-Count, but
-      // useApi() reads bodies, not headers, and this write is a 204 — so the
-      // refetch below is what reconciles, and the optimistic value is only
-      // ever wrong for the length of one round trip.
+      // Optimistic: the dot and the badge answer the click immediately, and
+      // the failure path below puts both back rather than leaving the UI
+      // claiming something that did not happen.
+      //
+      // The endpoint also returns the authoritative total in X-Unread-Count,
+      // which this deliberately does not read: useApi() returns parsed bodies
+      // and these writes are 204s, so reading the header would mean a second
+      // HTTP helper for one number that decrementing already gets right. The
+      // next fetch() reconciles if it ever does not.
       target.read_at = new Date().toISOString()
       this.unreadCount = Math.max(0, this.unreadCount - 1)
 

@@ -60,16 +60,6 @@ const fileSize = (b: number) =>
 // Every handler ignores events about other proposals — a reviewer or admin is
 // subscribed to a whole role channel, so most of what arrives here is about
 // something else entirely.
-const auth = useAuthStore()
-
-const liveChannels = computed(() => {
-  const names: string[] = []
-  if (auth.user) names.push(channels.user(auth.user.id))
-  if (auth.role === 'reviewer') names.push(channels.reviewers)
-  if (auth.role === 'admin') names.push(channels.admins)
-  return names
-})
-
 function isThisProposal(event: RealtimeEvent) {
   return event.proposal.id === id
 }
@@ -84,7 +74,7 @@ function reload() {
   load()
 }
 
-useRealtime(liveChannels.value, {
+useRealtime(myChannels(), {
   // Patch the badge from the payload AND refetch. The payload carries the new
   // status, which is what makes the badge change the instant the decision is
   // made — but a decided proposal is also no longer editable or reviewable,

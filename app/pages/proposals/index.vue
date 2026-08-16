@@ -68,15 +68,7 @@ onUnmounted(() => clearTimeout(searchTimer))
 // All of this is a no-op with no socket: useRealtime() subscribes to nothing,
 // `pending` stays 0, the bar never renders, and the page is exactly what it
 // was before this feature existed.
-const liveChannels = computed(() => {
-  const names: string[] = []
-  if (auth.user) names.push(channels.user(auth.user.id))
-  if (auth.role === 'reviewer') names.push(channels.reviewers)
-  if (auth.role === 'admin') names.push(channels.admins)
-  return names
-})
-
-useRealtime(liveChannels.value, {
+useRealtime(myChannels(), {
   'proposal.created': () => store.notePending(),
   'proposal.updated': () => store.notePending(),
   'proposal.status_changed': () => store.notePending(),
