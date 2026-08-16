@@ -38,6 +38,10 @@ async function resend() {
   resending.value = true
   try {
     await useApi().post('/email/resend')
+    // The old code is dead the moment a new one is issued — a stale
+    // "not valid or expired" message left under the input would now be
+    // describing a code that no longer exists, contradicting the toast.
+    errors.value = {}
     push('A new code is on its way.')
   } catch (e) {
     push((e as ApiError).message, 'error')
