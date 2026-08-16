@@ -1,4 +1,6 @@
-const PUBLIC = ['/login', '/register']
+// /invite/accept is public by necessity: the invitee has no password yet,
+// so bouncing them to /login is a dead end they cannot leave.
+const PUBLIC = ['/login', '/register', '/invite/accept']
 
 export default defineNuxtRouteMiddleware(async (to) => {
   const auth = useAuthStore()
