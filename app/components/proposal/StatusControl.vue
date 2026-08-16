@@ -1,7 +1,12 @@
 <script setup lang="ts">
 import type { Proposal, Status } from '~/types/api'
 
-const props = defineProps<{ proposal: Proposal }>()
+// `align` is the host layout's business, not this control's. It defaults to
+// `end` because this component was built as a right-aligned table cell in
+// admin/decisions.vue and both of that page's call sites still depend on it;
+// proposals/[id].vue mounts it inside a left-aligned reading column and asks
+// for `start` explicitly.
+const props = defineProps<{ proposal: Proposal; align?: 'start' | 'end' }>()
 const emit = defineEmits<{ changed: [] }>()
 const { push } = useToast()
 
@@ -43,7 +48,7 @@ async function setStatus(status: Status, withNote = '') {
 </script>
 
 <template>
-  <div class="flex justify-end gap-2">
+  <div class="flex gap-2" :class="align === 'start' ? 'justify-start' : 'justify-end'">
     <UiButton
       size="sm" variant="approve" :disabled="busy || proposal.status === 'approved'"
       @click="setStatus('approved')"

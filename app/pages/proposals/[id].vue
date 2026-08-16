@@ -53,12 +53,16 @@ const fileSize = (b: number) =>
 </script>
 
 <template>
-  <!-- One root element, not the live region and the content side by side:
-       app.vue's page transition is a <Transition>, and Vue silently applies
-       nothing at all to a multi-root page. A plain wrapper is invisible to
-       layout here — <main> is a block container and the live region is
-       `sr-only` (absolutely positioned), so it occupies no space either way. -->
   <div>
+    <!-- One root element, not the live region and the content side by side:
+         app.vue's page transition is a <Transition>, and Vue silently applies
+         nothing at all to a multi-root page. A plain wrapper is invisible to
+         layout here — <main> is a block container and the live region is
+         `sr-only` (absolutely positioned), so it occupies no space either way.
+         This note sits INSIDE the wrapper rather than above it because Nuxt's
+         dev-only root check counts a template-level comment as a second root
+         node — a comment above the <div> makes it warn NUXT_E4004 about the
+         very structure it is describing. -->
     <p aria-live="polite" class="sr-only">{{ announcement }}</p>
 
     <UiCard v-if="loading"><UiSkeleton :lines="10" /></UiCard>
@@ -127,9 +131,15 @@ const fileSize = (b: number) =>
              `onSettled` (above) already refocuses `heading` after it settles
              — the same fix admin/users.vue made for the same unmount-on-reload
              cause (verified live: `document.activeElement` landed back on the
-             `<h1>`, not `<body>`, after a keyboard-driven decision). -->
+             `<h1>`, not `<body>`, after a keyboard-driven decision).
+             `align="start"`: the control's default is right-aligned for its
+             other home, a table cell in decisions.vue. Left unset here the
+             Approve button lands at x=708 (measured at 1440px) while the h1
+             and the description sit at x=24 — stranded at the far edge of the
+             reading column, away from the badge it acts on. `start` puts it
+             flush with everything else in the column. -->
         <div v-if="proposal.can.change_status" class="mt-6">
-          <ProposalStatusControl :proposal="proposal" @changed="load" />
+          <ProposalStatusControl :proposal="proposal" align="start" @changed="load" />
         </div>
 
         <!-- ink-85, not ink-70: this is full-length reading copy
