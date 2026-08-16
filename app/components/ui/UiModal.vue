@@ -11,6 +11,14 @@ const titleId = useId()
 // and Tailwind's preflight resets `margin: 0` on every element, which beats
 // it. Without the utility every modal in the app renders pinned to the
 // top-left corner (measured: 0,0 on both this screen's callers).
+//
+// The motion block is long because `display` and `overlay` are discrete:
+// without `transition-discrete` and a `starting:` entry value there is
+// nothing to interpolate from and the dialog just pops. `overlay` is what
+// holds it in the top layer while it fades out. Both confirmed supported in
+// the browser under test (Chromium 151) rather than assumed. The close path
+// is untouched — Escape still fires `cancel`, and native focus restoration
+// happens on close(), not when the fade ends.
 
 watch(() => props.open, (open) => {
   if (open) el.value?.showModal()
@@ -22,7 +30,12 @@ watch(() => props.open, (open) => {
   <dialog
     ref="el"
     :aria-labelledby="titleId"
-    class="rounded-card border border-rule bg-card p-0 m-auto max-w-[34rem] w-full shadow-lifted backdrop:bg-ink/30 overflow-hidden"
+    class="rounded-card border border-rule bg-card p-0 m-auto max-w-[34rem] w-full shadow-lifted overflow-hidden
+           opacity-0 translate-y-1 open:opacity-100 open:translate-y-0 starting:open:opacity-0 starting:open:translate-y-1
+           transition-[opacity,translate,display,overlay] transition-discrete duration-[var(--duration-moderate)] ease-in-out-soft
+           backdrop:bg-ink/30 backdrop:opacity-0 open:backdrop:opacity-100 starting:open:backdrop:opacity-0
+           backdrop:transition-[opacity,display,overlay] backdrop:transition-discrete
+           backdrop:duration-[var(--duration-moderate)] backdrop:ease-in-out-soft"
     @close="emit('close')" @cancel.prevent="emit('close')"
   >
     <div class="p-6 pb-5">

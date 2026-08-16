@@ -203,7 +203,12 @@ function onCreated() {
             </tr>
           </thead>
           <tbody>
-            <tr v-for="u in items" :key="u.id" class="border-b border-sunken last:border-b-0">
+            <!-- Same near-white row wash the decision queue uses. -->
+            <tr
+              v-for="u in items" :key="u.id"
+              class="border-b border-sunken last:border-b-0 hover:bg-paper
+                     transition-colors duration-[var(--duration-instant)] ease-out-soft"
+            >
               <td class="py-[18px] pl-6 pr-3">
                 <div class="flex items-center gap-3">
                   <UiAvatar :initials="u.initials" size="sm" />

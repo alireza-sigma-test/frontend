@@ -4,6 +4,10 @@ const auth = useAuthStore()
 // Display-only Title Case — `auth.role` stays the lowercase Role literal
 // other code compares against (isSpeaker/isAdmin, :roles metas).
 const roleLabel = computed(() => (auth.role ? auth.role.charAt(0).toUpperCase() + auth.role.slice(1) : ''))
+
+// Four nav links share one treatment; inlined it read as four chances to
+// let one drift out of step with the others.
+const navLink = 't-label text-ink-45 hover:text-ink transition-colors duration-[var(--duration-instant)] ease-out-soft'
 </script>
 
 <template>
@@ -27,12 +31,16 @@ const roleLabel = computed(() => (auth.role ? auth.role.charAt(0).toUpperCase() 
         </NuxtLink>
         <span v-if="auth.user" class="hidden md:inline md:order-2 t-label text-ink-45 whitespace-nowrap">{{ auth.user.name }} · {{ roleLabel }}</span>
         <UiAvatar v-if="auth.user" :initials="auth.user.initials" size="sm" class="order-1 md:order-3 ml-auto md:ml-0" />
-        <button class="order-2 md:order-4 t-label text-ink-45 hover:text-ink whitespace-nowrap" @click="auth.logout()">Sign out</button>
+        <button
+          class="order-2 md:order-4 t-label text-ink-45 hover:text-ink whitespace-nowrap
+                 transition-colors duration-[var(--duration-instant)] ease-out-soft"
+          @click="auth.logout()"
+        >Sign out</button>
         <nav class="order-3 md:order-1 basis-full md:basis-auto flex gap-4 md:flex-1">
-          <NuxtLink to="/proposals" class="t-label text-ink-45 hover:text-ink">Proposals</NuxtLink>
-          <NuxtLink v-if="auth.isSpeaker" to="/proposals/new" class="t-label text-ink-45 hover:text-ink">Submit</NuxtLink>
-          <NuxtLink v-if="auth.isAdmin" to="/admin/decisions" class="t-label text-ink-45 hover:text-ink">Decisions</NuxtLink>
-          <NuxtLink v-if="auth.isAdmin" to="/admin/users" class="t-label text-ink-45 hover:text-ink">Users</NuxtLink>
+          <NuxtLink to="/proposals" :class="navLink">Proposals</NuxtLink>
+          <NuxtLink v-if="auth.isSpeaker" to="/proposals/new" :class="navLink">Submit</NuxtLink>
+          <NuxtLink v-if="auth.isAdmin" to="/admin/decisions" :class="navLink">Decisions</NuxtLink>
+          <NuxtLink v-if="auth.isAdmin" to="/admin/users" :class="navLink">Users</NuxtLink>
         </nav>
       </div>
     </header>

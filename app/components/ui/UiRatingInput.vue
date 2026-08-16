@@ -36,7 +36,7 @@ const range = (from: number, to: number) => Array.from({ length: to - from + 1 }
       <div v-for="(row, i) in rows" :key="i" class="flex gap-1">
         <button
           v-for="n in range(row[0], row[1])" :key="n" type="button" role="radio"
-          class="text-2xl leading-none transition-colors"
+          class="text-2xl leading-none transition-colors duration-[var(--duration-instant)] ease-out-soft"
           :class="n <= modelValue ? 'text-terracotta' : 'text-rule-mid hover:text-ink-45'"
           :aria-checked="n === modelValue" :aria-label="`${n} of ${max}`"
           @click="emit('update:modelValue', n)"

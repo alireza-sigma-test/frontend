@@ -38,7 +38,7 @@ const mb = (b: number) => (b / 1024 / 1024).toFixed(1)
          `rule` and `rule-strong`, exact to the design's dashed elements. -->
     <div
       v-if="!modelValue"
-      class="rounded-card border border-dashed p-6 text-center transition-colors"
+      class="rounded-card border border-dashed p-6 text-center transition-colors duration-[var(--duration-instant)] ease-out-soft"
       :class="dragging ? 'border-terracotta bg-card' : 'border-rule-dashed bg-sunken'"
       @dragover.prevent="dragging = true" @dragleave="dragging = false"
       @drop.prevent="dragging = false; accept($event.dataTransfer?.files[0])"
@@ -60,7 +60,10 @@ const mb = (b: number) => (b / 1024 / 1024).toFixed(1)
       <span class="rounded-badge border border-file-br bg-file-bg text-file-fg t-eyebrow px-1.5 py-1">PDF</span>
       <span class="t-body text-ink flex-1 truncate">{{ modelValue.name }}</span>
       <span class="t-eyebrow text-ink-45">{{ mb(modelValue.size) }} MB of 4 MB</span>
-      <button type="button" class="text-ink-45 hover:text-ink" aria-label="Remove file" @click="clear">✕</button>
+      <button
+        type="button" class="text-ink-45 hover:text-ink transition-colors duration-[var(--duration-instant)] ease-out-soft"
+        aria-label="Remove file" @click="clear"
+      >✕</button>
     </div>
 
     <p v-if="error" class="t-label text-rejected-fg">{{ error }}</p>

@@ -74,7 +74,11 @@ function remove(value: number | string) {
         class="rounded-badge bg-accent-tint text-accent-tint-fg px-2 py-1 t-label inline-flex items-center gap-1.5"
       >
         {{ t.label }}
-        <button type="button" class="text-accent-tint-fg/65 hover:text-accent-tint-fg" :aria-label="`Remove ${t.label}`" @click="remove(t.value)">✕</button>
+        <button
+          type="button"
+          class="text-accent-tint-fg/65 hover:text-accent-tint-fg transition-colors duration-[var(--duration-instant)] ease-out-soft"
+          :aria-label="`Remove ${t.label}`" @click="remove(t.value)"
+        >✕</button>
       </span>
 
       <input
@@ -86,7 +90,12 @@ function remove(value: number | string) {
     </div>
 
     <div v-if="matches.length || canCreate" class="flex flex-wrap gap-1.5">
-      <button v-for="t in matches" :key="t.id" type="button" class="rounded-badge border border-rule bg-card px-2 py-0.5 t-label text-ink-70 hover:text-ink hover:border-ink" @click="add(t.id)">
+      <button
+        v-for="t in matches" :key="t.id" type="button"
+        class="rounded-badge border border-rule bg-card px-2 py-0.5 t-label text-ink-70 hover:text-ink hover:border-ink
+               transition-colors duration-[var(--duration-instant)] ease-out-soft"
+        @click="add(t.id)"
+      >
         {{ t.name }}
       </button>
       <button v-if="canCreate" type="button" class="rounded-badge border border-dashed border-rule-dashed bg-card px-2 py-0.5 t-label text-terracotta" @click="add(query.trim())">

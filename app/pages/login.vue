@@ -37,7 +37,10 @@ async function submit() {
 
     <div class="flex gap-6 border-b border-rule mb-8">
       <span aria-current="page" class="t-label text-[14px] text-ink pb-3 border-b-2 border-terracotta -mb-px">Sign in</span>
-      <NuxtLink to="/register" class="t-label text-[14px] text-ink-45 hover:text-ink pb-3">Create account</NuxtLink>
+      <NuxtLink
+        to="/register"
+        class="t-label text-[14px] text-ink-45 hover:text-ink pb-3 transition-colors duration-[var(--duration-instant)] ease-out-soft"
+      >Create account</NuxtLink>
     </div>
 
     <form class="flex flex-col gap-4" @submit.prevent="submit">

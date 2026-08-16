@@ -51,7 +51,8 @@ onMounted(() => { tags.fetch() })
       <div class="flex flex-col gap-1">
         <button
           v-for="s in statusOptions" :key="s.value" type="button"
-          class="flex justify-between items-center t-body px-2.5 py-2 rounded-control transition-colors text-left"
+          class="flex justify-between items-center t-body px-2.5 py-2 rounded-control text-left
+                 transition-colors duration-[var(--duration-instant)] ease-out-soft"
           :class="status === s.value ? 'bg-sunken text-ink' : 'text-ink-70 hover:bg-sunken'"
           :aria-current="status === s.value ? 'true' : undefined"
           @click="setStatus(s.value)"
@@ -79,7 +80,7 @@ onMounted(() => { tags.fetch() })
       <div v-else class="flex flex-wrap gap-2">
         <button
           v-for="t in tags.items" :key="t.id" type="button"
-          class="rounded-badge px-2 py-1 t-label border transition-colors"
+          class="rounded-badge px-2 py-1 t-label border transition-colors duration-[var(--duration-instant)] ease-out-soft"
           :class="activeTags.includes(t.slug)
             ? 'bg-accent-tint text-accent-tint-fg border-transparent'
             : 'border-rule text-ink-70 hover:border-ink hover:text-ink'"

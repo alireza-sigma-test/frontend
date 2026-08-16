@@ -15,7 +15,7 @@ defineProps<{ proposal: Proposal }>()
        to near-unreadable widths, so it stacks there instead — "full
        responsive behaviour" is explicitly in scope for this screen. -->
   <NuxtLink :to="`/proposals/${proposal.id}`" class="block">
-    <UiCard class="grid grid-cols-1 sm:grid-cols-[1fr_190px] gap-4 sm:gap-8 hover:border-rule-dashed transition-colors">
+    <UiCard class="grid grid-cols-1 sm:grid-cols-[1fr_190px] gap-4 sm:gap-8 hover:border-rule-dashed transition-colors duration-[var(--duration-instant)] ease-out-soft">
       <div class="min-w-0">
         <div class="flex items-center gap-3 mb-2.5">
           <span class="t-eyebrow text-ink-45">{{ proposal.ref }}</span>

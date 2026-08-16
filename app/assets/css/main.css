@@ -113,7 +113,23 @@
   .t-body    { font-family: var(--font-sans);    font-size: 15px; line-height: 1.7; }
   .t-label   { font-family: var(--font-sans);    font-size: 13px; line-height: 1.5;  font-weight: 500; }
   .t-eyebrow { font-family: var(--font-mono);    font-size: 12px; line-height: 1.4;  letter-spacing: 0.14em; text-transform: uppercase; }
+
+  /* Skeleton shimmer (design-system.html:414, 1.4s linear). One class, not
+     six utilities at the call site: the band only reads as a sweep if the
+     pseudo-element, the clip and the keyframe agree, and splitting that
+     across `after:*` arbitrary values hides the coupling. Resting position
+     is off-canvas to the left, so when the reduced-motion guard below cuts
+     the animation to one 0.01ms pass the bar degrades to the flat
+     `bg-sunken` block it was before — not a band frozen mid-sweep. */
+  .skeleton-bar { position: relative; overflow: hidden; }
+  .skeleton-bar::after {
+    content: ""; position: absolute; inset: 0; translate: -100% 0;
+    background-image: linear-gradient(90deg, transparent, var(--color-rule), transparent);
+    animation: shimmer 1.4s linear infinite;
+  }
 }
+
+@keyframes shimmer { to { translate: 100% 0; } }
 
 html, body { background: var(--color-paper); color: var(--color-ink); -webkit-font-smoothing: antialiased; }
 
@@ -126,9 +142,11 @@ html, body { background: var(--color-paper); color: var(--color-ink); -webkit-fo
    call site. Vestibular disorders make large motion genuinely painful, and
    the failure mode of forgetting one guard is worse than the cost of a blunt
    rule. `!important` because it must beat utilities on the elements
-   themselves. */
+   themselves. `*::backdrop` is listed because `*` does not match a
+   pseudo-element — the modal's backdrop fade would otherwise be the one
+   thing in the app this block never reaches. */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *, *::before, *::after, *::backdrop {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;

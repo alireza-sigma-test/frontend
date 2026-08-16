@@ -37,7 +37,8 @@ const sizes = { sm: 'h-[30px] px-3.5', md: 'h-[38px] px-5', lg: 'h-12 px-[26px]'
 <template>
   <NuxtLink
     v-if="to" :to="to" :aria-disabled="disabled || undefined"
-    class="t-label rounded-control inline-flex items-center justify-center gap-2 transition-colors"
+    class="t-label rounded-control inline-flex items-center justify-center gap-2
+           transition-colors duration-[var(--duration-instant)] ease-out-soft"
     :class="[variants[variant], sizes[size], disabled ? 'pointer-events-none !bg-sunken !text-ink-45 !border-rule cursor-not-allowed' : '']"
   >
     <slot />
@@ -45,7 +46,8 @@ const sizes = { sm: 'h-[30px] px-3.5', md: 'h-[38px] px-5', lg: 'h-12 px-[26px]'
   <button
     v-else
     :type="type" :disabled="disabled"
-    class="t-label rounded-control inline-flex items-center justify-center gap-2 transition-colors
+    class="t-label rounded-control inline-flex items-center justify-center gap-2
+           transition-colors duration-[var(--duration-instant)] ease-out-soft
            disabled:cursor-not-allowed disabled:!bg-sunken disabled:!text-ink-45 disabled:!border-rule"
     :class="[variants[variant], sizes[size]]"
   >

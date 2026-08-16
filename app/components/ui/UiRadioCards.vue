@@ -7,7 +7,8 @@ const name = useId()
   <div class="flex flex-col gap-2">
     <label
       v-for="o in options" :key="o.value"
-      class="flex gap-3 items-start rounded-control border p-3 cursor-pointer transition-colors"
+      class="flex gap-3 items-start rounded-control border p-3 cursor-pointer
+             transition-colors duration-[var(--duration-instant)] ease-out-soft"
       :class="modelValue === o.value
         ? 'border-terracotta bg-radio-selected'
         : 'border-rule-strong bg-card hover:border-ink'"

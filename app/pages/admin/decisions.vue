@@ -133,9 +133,18 @@ const announcement = useResultAnnouncer(
             </tr>
           </thead>
           <tbody>
-            <tr v-for="p in store.items" :key="p.id" class="border-b border-sunken last:border-b-0">
+            <!-- design-system.html:333 gives a row a near-white hover wash;
+                 `paper` is the token that shade maps to. -->
+            <tr
+              v-for="p in store.items" :key="p.id"
+              class="border-b border-sunken last:border-b-0 hover:bg-paper
+                     transition-colors duration-[var(--duration-instant)] ease-out-soft"
+            >
               <td class="py-[18px] pl-6 pr-3">
-                <NuxtLink :to="`/proposals/${p.id}`" class="t-label text-ink hover:text-terracotta block">{{ p.title }}</NuxtLink>
+                <NuxtLink
+                  :to="`/proposals/${p.id}`"
+                  class="t-label text-ink hover:text-terracotta block transition-colors duration-[var(--duration-instant)] ease-out-soft"
+                >{{ p.title }}</NuxtLink>
                 <span class="t-eyebrow text-ink-45 block mt-0.5">{{ p.ref }}</span>
               </td>
               <td class="py-[18px] px-3 t-label text-ink-70">{{ p.author.name }}</td>

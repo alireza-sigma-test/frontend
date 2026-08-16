@@ -95,7 +95,11 @@ onUnmounted(() => clearTimeout(searchTimer))
           class="rounded-badge bg-accent-tint text-accent-tint-fg px-2 py-1 t-label inline-flex items-center gap-2"
         >
           {{ t.name }}
-          <button type="button" class="opacity-65 hover:opacity-100" :aria-label="`Remove ${t.name} filter`" @click="removeTag(t.slug)">✕</button>
+          <button
+            type="button"
+            class="opacity-65 hover:opacity-100 transition-opacity duration-[var(--duration-instant)] ease-out-soft"
+            :aria-label="`Remove ${t.name} filter`" @click="removeTag(t.slug)"
+          >✕</button>
         </span>
       </div>
 

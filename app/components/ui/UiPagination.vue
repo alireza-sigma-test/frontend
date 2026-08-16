@@ -7,7 +7,8 @@ defineEmits<{ change: [number] }>()
     <button class="t-label px-2 py-1 text-ink-70 disabled:opacity-40" :disabled="currentPage === 1" @click="$emit('change', currentPage - 1)">‹</button>
     <button
       v-for="p in lastPage" :key="p"
-      class="t-label px-2.5 py-1 rounded-control" :aria-current="p === currentPage ? 'page' : undefined"
+      class="t-label px-2.5 py-1 rounded-control transition-colors duration-[var(--duration-instant)] ease-out-soft"
+      :aria-current="p === currentPage ? 'page' : undefined"
       :class="p === currentPage ? 'bg-ink text-white' : 'text-ink-70 hover:bg-sunken'"
       @click="$emit('change', p)"
     >{{ p }}</button>

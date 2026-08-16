@@ -1,6 +1,9 @@
 <script setup lang="ts">withDefaults(defineProps<{ lines?: number }>(), { lines: 3 })</script>
 <template>
   <div class="space-y-3" role="status" aria-label="Loading">
-    <div v-for="n in lines" :key="n" class="h-4 rounded-control bg-sunken" :style="{ width: `${100 - n * 7}%` }" />
+    <!-- `skeleton-bar` (main.css) adds the sweep: gradient, clip and
+         keyframe are coupled, so they stay one class rather than six
+         arbitrary-value utilities here. -->
+    <div v-for="n in lines" :key="n" class="h-4 rounded-control bg-sunken skeleton-bar" :style="{ width: `${100 - n * 7}%` }" />
   </div>
 </template>

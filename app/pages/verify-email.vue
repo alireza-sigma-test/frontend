@@ -69,7 +69,11 @@ async function resend() {
         help="Six digits, from the email we just sent."
       />
       <UiButton type="submit" size="lg" :disabled="busy">{{ busy ? 'Confirming…' : 'Confirm email' }}</UiButton>
-      <button type="button" class="t-label text-ink-45 hover:text-ink self-start" :disabled="resending" @click="resend">
+      <button
+        type="button"
+        class="t-label text-ink-45 hover:text-ink self-start transition-colors duration-[var(--duration-instant)] ease-out-soft"
+        :disabled="resending" @click="resend"
+      >
         {{ resending ? 'Sending…' : 'Send a new code' }}
       </button>
     </form>
