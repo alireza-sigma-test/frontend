@@ -6,6 +6,12 @@ const el = ref<HTMLDialogElement>()
 // not a name — without this the dialog is announced unlabelled.
 const titleId = useId()
 
+// `m-auto` in the class list below is load-bearing, not decoration: the UA
+// stylesheet centres a modal dialog with `margin: auto` against `inset: 0`,
+// and Tailwind's preflight resets `margin: 0` on every element, which beats
+// it. Without the utility every modal in the app renders pinned to the
+// top-left corner (measured: 0,0 on both this screen's callers).
+
 watch(() => props.open, (open) => {
   if (open) el.value?.showModal()
   else el.value?.close()
@@ -16,7 +22,7 @@ watch(() => props.open, (open) => {
   <dialog
     ref="el"
     :aria-labelledby="titleId"
-    class="rounded-card border border-rule bg-card p-0 max-w-[34rem] w-full shadow-lifted backdrop:bg-ink/30 overflow-hidden"
+    class="rounded-card border border-rule bg-card p-0 m-auto max-w-[34rem] w-full shadow-lifted backdrop:bg-ink/30 overflow-hidden"
     @close="emit('close')" @cancel.prevent="emit('close')"
   >
     <div class="p-6 pb-5">
