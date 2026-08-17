@@ -16,10 +16,6 @@ onMounted(() => { if (!tags.items.length) tags.fetch() })
 const FORM_FIELDS = ['title', 'description', 'tags', 'attachment']
 
 async function submit() {
-  // Two synchronous clicks with no event-loop yield both pass the :disabled
-  // check before Vue re-renders it — an explicit guard is the only thing
-  // that actually stops a duplicate POST, unlike relying on the button's
-  // reactive `disabled` state.
   if (busy.value) return
   busy.value = true
   errors.value = {}
@@ -27,7 +23,7 @@ async function submit() {
     const body = new FormData()
     body.append('title', form.title)
     body.append('description', form.description)
-    // Laravel's array validation expects `tags[]` as repeated keys, not a JSON array.
+    // Laravel expects `tags[]` as repeated keys, not a JSON array.
     form.tags.forEach(t => body.append('tags[]', String(t)))
     if (form.attachment) body.append('attachment', form.attachment)
 

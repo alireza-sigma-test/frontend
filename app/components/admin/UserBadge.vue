@@ -1,20 +1,16 @@
 <script setup lang="ts">
-// Structured exactly like UiBadge, deliberately not built on it: UiBadge's
-// prop is typed `Status` (pending | approved | rejected) and shared with
-// three other screens, and neither a role nor a verification state is a
-// proposal status. Widening it to carry both would make two unrelated things
-// look like one type.
+// Structured like UiBadge but deliberately not built on it: its prop is typed
+// `Status`, and neither a role nor a verification state is a proposal status.
 withDefaults(defineProps<{
   label: string
   tone: 'accent' | 'neutral' | 'pending'
-  // The dot is UiBadge's mark for "this is a live state". A role is an
-  // attribute of the account, not a state it's currently in, so only the
-  // verification badge carries one.
+  // UiBadge's mark for a live state. A role is an attribute, not a state, so only
+  // the verification badge carries one.
   dot?: boolean
 }>(), { dot: false })
 
 const tones = {
-  // The accent tint the avatars and tag chips already use — administrator.
+  // The accent tint avatars and tag chips already use — administrator.
   accent:  'bg-accent-tint text-accent-tint-fg border-accent-tint',
   neutral: 'bg-sunken text-ink-70 border-rule',
   pending: 'bg-pending-bg text-pending-fg border-pending-br',

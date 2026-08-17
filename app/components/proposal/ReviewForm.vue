@@ -13,8 +13,6 @@ const busy = ref(false)
 const FORM_FIELDS = ['rating', 'comment']
 
 async function submit() {
-  // Same guard as the other three forms in this app — two synchronous
-  // clicks both pass `:disabled` before Vue re-renders it.
   if (busy.value) return
   busy.value = true
   errors.value = {}
@@ -34,11 +32,8 @@ async function submit() {
 
 <template>
   <UiCard>
-    <!-- app-screens.html:379 — the card super-title is the same eyebrow
-         (mono, uppercase, ink-45) treatment as "Aggregate" below it and
-         "What reviewers look for" on screen 03, not a sentence-case
-         t-label. The existing/new wording itself is this form's own
-         addition, justified by POST being updateOrCreate server-side. -->
+    <!-- The same mono eyebrow treatment as "Aggregate" below, not a sentence-case
+         t-label. The existing/new wording reflects POST being updateOrCreate. -->
     <p class="t-eyebrow text-ink-45">{{ existing ? 'Your review' : 'Add your review' }}</p>
     <form class="mt-4 flex flex-col gap-4" @submit.prevent="submit">
       <UiRatingInput v-model="rating" :max="maxRating" />

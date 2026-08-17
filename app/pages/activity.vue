@@ -35,9 +35,8 @@ const announcement = useResultAnnouncer(
   () => error.value ? 'Could not load the activity feed.' : `${meta.value.total} events.`,
 )
 
-// Same offer-don't-apply rule as the two list screens: this one is paginated
-// and strictly time-ordered, so a live insert would push every row down and
-// silently shift what page 2 contains under anyone already reading it.
+// Offered, never applied, as on the list screens: this one is paginated and strictly
+// time-ordered, so an insert shifts what page 2 contains under whoever is reading it.
 useRealtime(myChannels(), {
   'proposal.created': () => pending.value++,
   'proposal.updated': () => pending.value++,
@@ -45,9 +44,8 @@ useRealtime(myChannels(), {
   'review.created': () => pending.value++,
 })
 
-// app-screens.html:493-505 writes each row as a sentence — "Ilya Petrov
-// submitted Type-safe APIs end to end" — with the raw event name beneath it.
-// The verb is the only part that varies, so it is the only part stored here.
+// Each row reads as a sentence with the raw event name beneath it. The verb is the
+// only part that varies.
 const VERBS: Record<ActivityType, string> = {
   'proposal.created': 'submitted',
   'proposal.updated': 'edited',
@@ -55,9 +53,7 @@ const VERBS: Record<ActivityType, string> = {
   'review.created': 'reviewed',
 }
 
-// The mockup colours proposal.created terracotta, proposal.status_changed
-// green and the rest muted — the event name carries a little meaning, not a
-// full status vocabulary.
+// The event name carries a little meaning, not a full status vocabulary.
 const TYPE_TONE: Record<ActivityType, string> = {
   'proposal.created': 'text-accent-tint-fg',
   'proposal.status_changed': 'text-approved-fg',
@@ -65,8 +61,8 @@ const TYPE_TONE: Record<ActivityType, string> = {
   'review.created': 'text-ink-45',
 }
 
-// The decision's outcome lives in the proposal's current status, which the
-// row already carries. "decided" alone would leave a reader guessing.
+// The outcome lives in the proposal's current status, which the row already carries;
+// "decided" alone would leave a reader guessing.
 function sentenceSuffix(row: ActivityRow) {
   return row.type === 'proposal.status_changed' ? ` · ${row.proposal.status}` : ''
 }

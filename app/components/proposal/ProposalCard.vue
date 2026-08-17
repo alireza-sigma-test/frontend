@@ -2,18 +2,13 @@
 import type { Proposal } from '~/types/api'
 defineProps<{ proposal: Proposal }>()
 
-// Relative-time formatting now lives in ~/utils/time.ts (relativeTime) —
-// screen 04 needs the exact same format for two more timestamps, so the
-// logic that used to live only here is shared instead of duplicated.
+// Relative-time formatting lives in ~/utils/time.ts, shared with screen 04.
 </script>
 
 <template>
-  <!-- Two-column grid (content / status+rating rail), matching screen 02's
-       actual card — not the single-column card from the design system's
-       generic component gallery, which this screen does not use. Below
-       `sm` the fixed 190px rail would crush the title/description column
-       to near-unreadable widths, so it stacks there instead — "full
-       responsive behaviour" is explicitly in scope for this screen. -->
+  <!-- Content plus a status/rating rail, per screen 02's own card rather than the
+       gallery's single-column one. Below `sm` the fixed 190px rail would crush the
+       text column, so it stacks. -->
   <NuxtLink :to="`/proposals/${proposal.id}`" class="block">
     <UiCard class="grid grid-cols-1 sm:grid-cols-[1fr_190px] gap-4 sm:gap-8 hover:border-rule-dashed transition-colors duration-[var(--duration-instant)] ease-out-soft">
       <div class="min-w-0">

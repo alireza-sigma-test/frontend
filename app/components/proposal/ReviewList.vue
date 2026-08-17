@@ -4,19 +4,14 @@ defineProps<{ reviews: Review[]; maxRating: number }>()
 </script>
 
 <template>
-  <!-- app-screens.html:340-374 — reviews are separated by vertical space only
-       (28px, gap-7), no rule between them; a per-row border/pb (an earlier
-       draft's guess) isn't in the design. Each row is a 34px avatar column
-       plus a content column (grid, not a flat flex stack) so the comment
-       indents under the name whether or not an avatar rendered — flattening
-       it would leave the redacted rows (no avatar) with their comment
-       starting under empty space instead of aligned with the other text. -->
+  <!-- Separated by vertical space only, no rule between rows. Each row is an avatar
+       column plus a content column, so the comment indents under the name whether or
+       not an avatar rendered — flattening it would leave redacted rows misaligned. -->
   <div class="flex flex-col gap-7">
     <div v-for="r in reviews" :key="r.id" class="grid grid-cols-[34px_1fr] gap-4">
       <UiAvatar v-if="r.reviewer" :initials="r.reviewer.initials" />
-      <!-- Owning speaker's view: identity and score are withheld by the API
-           itself (ProposalResource redacts the whole entry down to
-           {id, comment, created_at}) — no avatar, no placeholder for one. -->
+      <!-- The owning speaker's view: the API itself redacts identity and score, so
+           there is no avatar and no placeholder for one. -->
       <span v-else />
 
       <div>
@@ -24,9 +19,8 @@ defineProps<{ reviews: Review[]; maxRating: number }>()
           <span v-if="r.reviewer" class="t-label text-ink">{{ r.reviewer.name }}</span>
           <span v-else class="t-label text-ink-45">A reviewer</span>
 
-          <!-- Unfilled portion uses `rule-mid` (#D9D3CA), not `rule`
-               (#E5E1DA) — the design's dedicated star-off colour
-               (app-screens.html:346/368), matching UiRatingInput. -->
+          <!-- `rule-mid` is the design's dedicated star-off colour, matching
+               UiRatingInput. -->
           <span v-if="r.rating !== undefined" class="t-label text-terracotta">
             {{ '★'.repeat(r.rating) }}<span class="text-rule-mid">{{ '★'.repeat(maxRating - r.rating) }}</span>
           </span>

@@ -32,9 +32,8 @@ onMounted(load)
 
     <main class="flex items-center justify-center px-6 py-12">
       <div class="w-full max-w-[26rem]">
-        <!-- The aside above carries the brand mark from `lg` up; it's hidden
-             below that breakpoint, so restate it here or the page ships with
-             no product identity at all on mobile. -->
+        <!-- The aside carries the brand mark from `lg` up and is hidden below it, so
+             without this the page has no product identity on mobile. -->
         <div class="flex items-center gap-3 mb-8 lg:hidden">
           <span class="w-2.5 h-2.5 rounded-full bg-terracotta" aria-hidden="true" />
           <p class="t-eyebrow text-ink-70">Proposal Review</p>

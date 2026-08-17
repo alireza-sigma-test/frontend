@@ -11,10 +11,8 @@ const busy = ref(false)
 const formId = useId()
 const roleHeadingId = useId()
 
-// Three options where register.vue deliberately shows two. Administrators
-// are created by administrators — POST /api/register rejects role: admin —
-// so this modal is the only place in the product where one can be made, and
-// dropping the option would defeat the screen.
+// Three options where register.vue shows two: POST /api/register rejects role: admin,
+// so this modal is the only place an administrator can be made.
 const roles = [
   { value: 'speaker',  label: 'Speaker',       description: 'Submit proposals and follow their status' },
   { value: 'reviewer', label: 'Reviewer',      description: 'Read every proposal, rate and comment' },
@@ -23,9 +21,8 @@ const roles = [
 
 const FORM_FIELDS = ['name', 'email', 'role']
 
-// The modal stays mounted between openings (UiModal drives the native
-// <dialog> from the `open` prop), so without this a second invitation opens
-// on the first one's values and its "email has already been taken" error.
+// The modal stays mounted between openings, so without this a second invitation opens
+// on the first one's values and errors.
 watch(() => props.open, (open) => {
   if (!open) return
   form.name = ''
@@ -35,17 +32,13 @@ watch(() => props.open, (open) => {
 })
 
 async function submit() {
-  // Same double-submit guard every other form in this app uses.
   if (busy.value) return
   busy.value = true
   errors.value = {}
   try {
     await useApi().post('/admin/users', { ...form })
-    // Read the address off the form, not the 201 body: this is the last
-    // moment it's on screen. The new row typically lands at the end of the
-    // list — the repository issues a plain, unordered `paginate()`, so
-    // nothing here actually guarantees it — meaning it may not be on the
-    // current page.
+    // Off the form, not the 201 body: this is the last moment it is on screen, and
+    // the new row may not land on the current page.
     push(`Invitation sent to ${form.email}.`)
     emit('created')
   } catch (e) {
@@ -77,11 +70,8 @@ async function submit() {
       </div>
     </form>
 
-    <!-- UiModal renders its actions on a separate tinted band, outside the
-         default slot this form lives in, so the submit button reaches the
-         form by id rather than by containment. That keeps it a real
-         type="submit" — Enter from either text field still sends the
-         invitation, which a @click-only button would have broken. -->
+    <!-- UiModal's actions sit outside this form's slot, so the button reaches the form
+         by id. That keeps it a real type="submit", so Enter still sends. -->
     <template #actions>
       <UiButton variant="ghost" size="sm" :disabled="busy" @click="emit('close')">Cancel</UiButton>
       <UiButton type="submit" :form="formId" size="sm" :disabled="busy">{{ busy ? 'Sending…' : 'Send invitation' }}</UiButton>

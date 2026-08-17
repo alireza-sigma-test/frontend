@@ -7,19 +7,14 @@ const { push } = useToast()
 const busy = ref(false)
 
 async function reinvite() {
-  // Same double-submit guard every other form in this app uses.
   if (busy.value) return
   busy.value = true
   try {
     await useApi().post(`/admin/users/${props.user.id}/reinvite`)
     push(`A fresh invitation code is on its way to ${props.user.email}.`)
   } catch (e) {
-    // Callers only render this for `is_verified: false`, but unverified is
-    // not the same as re-invitable: a user who registered themselves and
-    // never confirmed their email still comes back `422 not_reinvitable`
-    // (verified live — reinvite exists for admin-created accounts that were
-    // never claimed). Show the server's message rather than pretending it
-    // worked.
+    // Unverified is not the same as re-invitable: a self-registered user who never
+    // confirmed still returns 422 not_reinvitable, so show the server's message.
     push((e as ApiError).message, 'error')
   } finally {
     busy.value = false

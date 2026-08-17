@@ -1,12 +1,8 @@
 <script setup lang="ts">
 import type { Tag } from '~/types/api'
 
-// Mirrors the API's own `tags` max:10 validation exactly (probed live:
-// 10 tags creates a proposal, 11 returns "The tags field must not have
-// more than 10 items."). Capping here isn't just UX polish — it's the
-// only thing standing between this input and an unrenderable server
-// error, since nothing on the consuming page has a slot for a `tags`
-// error keyed at the whole-array level once it silently overflows.
+// Mirrors the API's own `tags` max:10. Not just polish: nothing on the consuming page
+// has a slot for a whole-array `tags` error, so overflowing would be unrenderable.
 const MAX_TAGS = 10
 
 const props = defineProps<{ modelValue: (number | string)[]; suggestions: Tag[] }>()
@@ -30,9 +26,8 @@ const matches = computed(() => {
     .slice(0, 6)
 })
 
-// Offer creation only when nothing existing matches, and nothing already
-// chosen matches either — case-insensitively, so typing "Testing" then
-// "testing" doesn't emit two near-identical new tags in one submission.
+// Only when nothing existing or already chosen matches, case-insensitively, so
+// "Testing" then "testing" cannot emit two near-identical new tags.
 const canCreate = computed(() => {
   if (atMax.value) return false
   const q = query.value.trim()
@@ -44,8 +39,7 @@ const canCreate = computed(() => {
 
 function add(value: number | string) {
   if (atMax.value) return
-  // Case-insensitive guard for new names (ids are compared as-is; casing
-  // doesn't apply to a numeric id).
+  // Case-insensitive for new names; ids compare as-is.
   const alreadyChosen = typeof value === 'string'
     ? selectedLabels.value.some(t => t.label.toLowerCase() === value.toLowerCase())
     : props.modelValue.includes(value)
@@ -65,9 +59,8 @@ function remove(value: number | string) {
       <span class="t-eyebrow" :class="atMax ? 'text-terracotta' : 'text-ink-45'">{{ modelValue.length }} / {{ MAX_TAGS }}</span>
     </div>
 
-    <!-- Interactive control -> border-rule-strong, not the structural border-rule.
-         Background is bg-card: the design system's tag input renders on white,
-         not the sunken tone other inputs use. -->
+    <!-- An interactive control, so border-rule-strong rather than the structural
+         border-rule, and bg-card rather than the sunken tone other inputs use. -->
     <div class="rounded-control border border-rule-strong bg-card p-2 flex flex-wrap gap-1.5">
       <span
         v-for="t in selectedLabels" :key="String(t.value)"

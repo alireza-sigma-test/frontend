@@ -4,26 +4,17 @@ withDefaults(defineProps<{
   size?: 'sm' | 'md' | 'lg'
   type?: 'button' | 'submit'
   disabled?: boolean
-  // When set, renders a NuxtLink instead of a <button>. A <button> nested
-  // inside an <a> (the previous call-site pattern: <NuxtLink><UiButton/></NuxtLink>)
-  // is invalid HTML — two interactive elements, one nested in the other —
-  // so the primitive itself now owns the choice of root element.
+  // When set, renders a NuxtLink instead of a <button>, so callers never nest a
+  // button inside an anchor.
   to?: string
 }>(), { variant: 'primary', size: 'md', type: 'button', disabled: false })
 
-// Matched to the design system's Components section. Note `danger`: destructive
-// actions are OUTLINED at rest and fill only on hover — the design calls this
-// out explicitly. Filling at rest reads as the action having already happened.
+// `danger` is outlined at rest and fills only on hover: filling at rest reads as the
+// action having already happened.
 //
-// `approve` isn't one of the four variants the design system's own component
-// gallery enumerates (design-system.html:610, "primary | secondary | ghost |
-// danger") — but screen 05's decision-queue row (app-screens.html:458) gives
-// Approve its own outlined-green treatment built from the exact
-// approved-fg/bg/br triple the Approved badge already uses, structured
-// identically to `danger` (outlined at rest, fills on hover) rather than as
-// a filled primary button. That's a deliberate, token-for-token match, not a
-// one-off inline style, so it's added here as a fifth variant rather than
-// hand-styled once inside StatusControl.vue.
+// `approve` is a fifth variant beyond the design's four, built from the same
+// approved-fg/bg/br triple as the Approved badge and structured like `danger` — a
+// token-for-token match, kept here rather than hand-styled inside StatusControl.
 const variants = {
   primary:   'bg-terracotta text-white hover:bg-terracotta-dark',
   secondary: 'bg-card text-ink border border-rule-strong hover:border-ink',

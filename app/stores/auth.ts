@@ -11,8 +11,8 @@ export const useAuthStore = defineStore('auth', {
     role: (s): Role | null => s.user?.role ?? null,
     isSpeaker: s => s.user?.role === 'speaker',
     isAdmin:   s => s.user?.role === 'admin',
-    // Derived from the API's own boolean rather than re-deriving it from the
-    // timestamp, so the client cannot disagree with the server about who may write.
+    // The API's own boolean, not re-derived from the timestamp, so the client cannot
+    // disagree with the server about who may write.
     isVerified: s => s.user?.is_verified === true,
   },
 
@@ -41,14 +41,9 @@ export const useAuthStore = defineStore('auth', {
       this.token = stored
       try { this.user = await useApi().get<User>('/me') }
       catch (e) {
-        // Only a genuine 401 means the token itself is invalid — clear it.
-        // A 500, an offline blip or the API still booting must not sign the
-        // user out: useApi() already clears + redirects on a real 401 on
-        // every *other* request, so this only needs to handle the case
-        // where /me itself is what failed. Leaving the token in place on
-        // anything else lets the next authenticated request (or a plain
-        // refresh) re-derive the truth instead of stranding the user at
-        // /login with no way back short of re-entering credentials.
+        // Only a genuine 401 means the token is invalid. A 500, an offline blip or a
+        // still-booting API must not sign the user out — leaving the token in place
+        // lets the next request re-derive the truth.
         if ((e as ApiError).status === 401) this.clear()
       }
     },
@@ -59,9 +54,8 @@ export const useAuthStore = defineStore('auth', {
       if (import.meta.client) localStorage.setItem(TOKEN_KEY, token)
     },
 
-    // Separate from `set`: verifying doesn't change the token, so callers
-    // would otherwise have to pass `auth.token!` back into the store it came
-    // from. This only ever replaces the user.
+    // Separate from `set` because verifying does not change the token, so callers
+    // would otherwise pass `auth.token!` back into the store it came from.
     setUser(user: User) {
       this.user = user
     },

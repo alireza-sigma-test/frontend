@@ -14,16 +14,11 @@ async function open(n: AppNotification) {
 </script>
 
 <template>
-  <!-- The panel is the aside from app-screens.html:509-527, rendered as an
-       overlay under the bell rather than a third column: this app's header is
-       a single 64px row on every screen, not the two-column shell the mockup
-       draws, and carving a permanent 400px column out of every page for it
-       would change every other screen to serve this one.
+  <!-- An overlay under the bell rather than a permanent column, which would change
+       every other screen to serve this one.
 
-       role="menu" is deliberately NOT used. These rows are links to
-       proposals, not menu commands, and the menu role commits to arrow-key
-       navigation that a list of links does not have. The label comes from the
-       bell that owns it. -->
+       role="menu" is deliberately not used: these rows are links, not commands, and
+       the menu role commits to arrow-key navigation a list of links does not have. -->
   <div
     :aria-labelledby="labelledBy"
     role="group"
@@ -45,9 +40,8 @@ async function open(n: AppNotification) {
 
     <p v-else-if="store.error" class="t-body text-ink-70">{{ store.error }}</p>
 
-    <!-- Not UiEmptyState: that primitive owns its own card and a 38px icon
-         square, sized for a full-page empty state. Inside a 24rem panel it
-         would be a card within a card. Same copy discipline, right scale. -->
+    <!-- Not UiEmptyState: its card and 38px icon square are sized for a full page,
+         and inside a 24rem panel would be a card within a card. -->
     <p v-else-if="!store.items.length" class="t-body text-ink-45 py-6 text-center">
       Nothing yet. Submissions, reviews and decisions show up here.
     </p>
@@ -61,11 +55,9 @@ async function open(n: AppNotification) {
           :class="n.read_at ? '' : 'bg-accent-tint/45'"
           @click="open(n)"
         >
-          <!-- app-screens.html:528 — "Unread items keep a tinted background
-               and a filled dot. Read items lose both — no strike-through, no
-               fading text." The dot is decorative; the word "Unread" below
-               is what actually reaches assistive tech, since neither a tint
-               nor a colour is available to it. -->
+          <!-- Unread keeps a tint and a filled dot; read loses both, with no
+               strike-through. The dot is decorative — the word "Unread" below is what
+               reaches assistive tech. -->
           <span
             class="w-[7px] h-[7px] rounded-full mt-1.5"
             :class="n.read_at ? 'bg-rule-mid' : 'bg-terracotta'"

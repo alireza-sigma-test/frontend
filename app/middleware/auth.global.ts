@@ -1,5 +1,5 @@
-// /invite/accept is public by necessity: the invitee has no password yet,
-// so bouncing them to /login is a dead end they cannot leave.
+// /invite/accept must be public: the invitee has no password yet, so /login is a dead
+// end they cannot leave.
 const PUBLIC = ['/login', '/register', '/invite/accept']
 
 export default defineNuxtRouteMiddleware(async (to) => {

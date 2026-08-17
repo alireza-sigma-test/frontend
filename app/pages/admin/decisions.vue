@@ -3,23 +3,17 @@ definePageMeta({ middleware: 'role', roles: ['admin'] })
 
 const store = useProposalsStore()
 
-// The decision queue is the list endpoint with a preset filter — no
-// separate route exists (API.md §05). Counters come from the same
-// response's `counts` block rather than `GET /stats`: that endpoint exists
-// (verified live — `total`/`pending`/`approved`/`rejected`/`ready_to_decide`),
-// but `counts` is unaffected by this queue's own status/sort filter, which
-// makes it the better source for a stable total — `GET
-// /api/proposals?status=pending&sort=rating` plus this `counts` block
-// covers everything the header needs without a second request.
+// The queue is the list endpoint with a preset filter; no separate route exists
+// (API.md §05). Counters come from the same response's `counts` block rather than
+// GET /stats, because `counts` is unaffected by this queue's own filter and so needs
+// no second request.
 function load() {
   store.fetch({ status: 'pending', sort: 'rating', per_page: '50' })
 }
 onMounted(load)
 
-// app-screens.html:434-437 colours the pending/approved/rejected counters
-// with the same fg tokens the status badge already uses for each — only
-// "total" stays plain ink. The brief's own snippet rendered all four the
-// same colour.
+// The counters reuse the status badge's own fg token for each; only "total" stays
+// plain ink.
 const counters = computed(() => [
   { key: 'all', label: 'total', value: store.counts.all, tone: 'text-ink' },
   { key: 'pending', label: 'pending', value: store.counts.pending, tone: 'text-pending-fg' },
@@ -27,25 +21,17 @@ const counters = computed(() => [
   { key: 'rejected', label: 'rejected', value: store.counts.rejected, tone: 'text-rejected-fg' },
 ])
 
-// app-screens.html:431 reads "3 proposals have enough reviews to decide" —
-// that "enough reviews" gate would be the `ready_to_decide` field `/api/stats`
-// actually returns (confirmed live), but nothing here enforces a minimum
-// review count before a decision, and `/stats` isn't filtered to this
-// queue's pending/rating view the way `counts` above is. The queue itself
-// already is every pending proposal, so this counts what's actually on
-// screen rather than asserting a threshold nothing backs.
+// The design's "enough reviews to decide" would be /api/stats's `ready_to_decide`, but
+// nothing here enforces a minimum review count and /stats is not filtered to this
+// queue. So this counts what is actually on screen rather than asserting a threshold
+// nothing backs.
 const subtitle = computed(() => {
   const n = store.items.length
   return `${n} proposal${n === 1 ? '' : 's'} waiting for a decision.`
 })
 
-// A visually-hidden live region for the queue-size summary, skipping the
-// page's own initial load so only user-driven changes (an approve/reject/
-// reset) get announced — shared with proposals/index.vue's own announcer.
-// Approving or rejecting a row also removes it from this queue (it's
-// filtered to status=pending), which drops keyboard/screen-reader focus at
-// <body> once the button it sat on is gone — the same reload is the one
-// sensible place to also move focus back to the page heading.
+// Deciding a row removes it from this queue, which drops keyboard focus at <body> once
+// the button it sat on is gone — so the same reload moves focus back to the heading.
 const heading = ref<HTMLHeadingElement>()
 const announcement = useResultAnnouncer(
   () => store.loading,
@@ -53,11 +39,8 @@ const announcement = useResultAnnouncer(
   () => heading.value?.focus(),
 )
 
-// Offered, never applied — and the case for that is stronger here than on the
-// list. This queue is sorted by rating, so a review landing on any proposal
-// can reorder rows an admin is in the middle of deciding. Reordering the
-// options under someone's cursor mid-decision is the one thing this screen
-// must not do.
+// Offered, never applied — more strongly here than on the list: this queue is sorted by
+// rating, so a review landing anywhere can reorder rows an admin is mid-decision on.
 useRealtime(channels.admins, {
   'proposal.created': () => store.notePending(),
   'review.created': () => store.notePending(),
@@ -70,8 +53,7 @@ useRealtime(channels.admins, {
 
     <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6">
       <div>
-        <!-- tabindex="-1": not in the tab order, only a programmatic focus
-             target for the post-decision reload above. -->
+        <!-- tabindex="-1": a programmatic focus target only, never in the tab order. -->
         <h1 ref="heading" tabindex="-1" class="t-section text-ink">Decision queue</h1>
         <p v-if="!store.error" class="t-body text-ink-45 mt-1.5">{{ subtitle }}</p>
       </div>
@@ -87,26 +69,19 @@ useRealtime(channels.admins, {
       <UiNewActivity :count="store.pending" noun="item in the queue" @refresh="load" />
     </div>
 
-    <!-- Skeleton matches the final layout's own chrome (a bordered card),
-         not a bare shimmer — design-system.html:424, "Skeleton · matches
-         final layout". -->
+    <!-- Skeleton matches the final layout's chrome, not a bare shimmer. -->
     <div v-if="store.loading" class="bg-card border border-rule rounded-card p-6 mt-8">
       <UiSkeleton :lines="6" />
     </div>
 
-    <!-- UiEmptyState/UiErrorState own the card + icon square themselves —
-         see design-system.html:404-438. -->
+    <!-- UiEmptyState/UiErrorState own the card + icon square themselves. -->
     <UiErrorState v-else-if="store.error" title="Couldn’t load the queue" :body="store.error" @retry="load" class="mt-8" />
 
     <UiEmptyState v-else-if="!store.items.length" title="Nothing waiting" body="Every proposal has a decision." class="mt-8" />
 
-    <!-- Below `md`, a 5-column table with fixed action-button widths
-         doesn't reflow the way ProposalCard's grid does even with a
-         horizontal scroll — cards instead, one per queued proposal.
-         `ProposalStatusControl`, not `StatusControl`: Nuxt prefixes
-         nested-directory components with the folder name (same auto-prefix
-         gotcha [id].vue's comment already documents), and the table below
-         already uses the resolved name. -->
+    <!-- Below `md` the 5-column table doesn't reflow, so cards instead.
+         `ProposalStatusControl`, not `StatusControl` — Nuxt prefixes
+         nested-directory components with the folder name. -->
     <div v-else-if="store.items.length" class="md:hidden mt-8 flex flex-col gap-3">
       <UiCard v-for="p in store.items" :key="p.id">
         <NuxtLink :to="`/proposals/${p.id}`" class="t-title text-ink">{{ p.title }}</NuxtLink>
@@ -122,18 +97,12 @@ useRealtime(channels.admins, {
       </UiCard>
     </div>
 
-    <!-- Not a bare `v-if="store.items.length"`: the mobile block above is
-         chained into the loading/error `v-else-if`, but this one is its own
-         root condition, so it must re-state those guards. `fetch()` does not
-         clear `items` while loading, so without them a decision at >=768px
-         renders the skeleton and the stale pre-decision table at once. -->
+    <!-- Its own root condition, unlike the mobile block above, so it must re-state the
+         loading/error guards: `fetch()` does not clear `items`, so without them a
+         decision renders the skeleton and the stale table at once. -->
     <div v-if="!store.loading && !store.error && store.items.length" class="hidden md:block bg-card border border-rule rounded-card overflow-hidden mt-8">
-      <!-- The design's own mockup pins this at min-width:1240px — a dense
-           5-column table with fixed action-button widths doesn't reflow to
-           a phone width the way ProposalCard's grid does. Scroll the table
-           itself rather than clipping it (the outer overflow-hidden above
-           is only there to round the corners at rest width) or letting it
-           blow out the page. -->
+      <!-- Pinned at min-width:1240px, and scrolled rather than clipped; the outer
+           overflow-hidden only rounds the corners at rest. -->
       <div class="overflow-x-auto">
         <table class="w-full min-w-[760px] border-collapse">
           <caption class="sr-only">Proposals awaiting a decision</caption>
@@ -147,8 +116,7 @@ useRealtime(channels.admins, {
             </tr>
           </thead>
           <tbody>
-            <!-- design-system.html:333 gives a row a near-white hover wash;
-                 `paper` is the token that shade maps to. -->
+            <!-- `paper` is the token the design's near-white hover wash maps to. -->
             <tr
               v-for="p in store.items" :key="p.id"
               class="border-b border-sunken last:border-b-0 hover:bg-paper

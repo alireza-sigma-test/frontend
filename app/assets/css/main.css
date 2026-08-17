@@ -5,32 +5,23 @@
   --color-paper:            #FBFAF8;
   --color-card:             #FFFFFF;
   --color-sunken:           #F4F1EC;
-  /* THREE neutral borders. `rule` is structural (cards, dividers,
-     disabled); `rule-strong` is for interactive controls — inputs, selects,
-     textareas, the secondary button, radio cards. `rule-mid` sits between
-     them — a dedicated shade the design uses for de-emphasised /
-     inactive marks (the empty-state icon square, an unfilled rating star)
-     that neither `rule` nor `rule-strong` is an exact match for. */
+  /* Three neutral borders: `rule` is structural, `rule-strong` is for interactive
+     controls, and `rule-mid` between them is the design's de-emphasised/inactive
+     shade (empty-state icon square, unfilled rating star). */
   --color-rule:             #E5E1DA;
   --color-rule-mid:         #D9D3CA;
   --color-rule-strong:      #D3CEC5;
   --color-ink:              #1A1815;
-  /* Reading copy — the full proposal description and review comments — is
-     darker than ink-70. Screen 04 is the first screen to render either at
-     length; ink-70 is what card previews and captions use, ink-85 is what
-     the design renders full body text in (#3A362F, ~86% ink over paper —
-     consistent with ink-70 and ink-45 both landing near their own name as
-     an ink/paper blend percentage). */
+  /* Reading copy is darker than ink-70, which is for card previews and captions.
+     Each ink-N is roughly N% ink over paper. */
   --color-ink-85:           #3A362F;
   --color-ink-70:           #56514B;
   --color-ink-45:           #8A837A;
   --color-terracotta:       #B44C1E;
-  /* Button hover. The design system's own token snippet calls this
-     --accent-hover, and every style-hover in the mockup uses it. */
+  /* Button hover; the design calls this --accent-hover. */
   --color-terracotta-dark:  #973D14;
-  /* Accent tint — avatars, tag chips and ::selection. #8F3A14 is the TEXT
-     colour on this tint, not the hover shade; conflating the two is what
-     the first draft of these tokens got wrong. */
+  /* Accent tint — avatars, tag chips, ::selection. The -fg here is the text colour
+     on the tint, not the hover shade. */
   --color-accent-tint:      #F3E3DA;
   --color-accent-tint-fg:   #8F3A14;
 
@@ -39,21 +30,18 @@
   --color-approved-fg: #2A5D45;  --color-approved-bg: #EDF4EF;  --color-approved-br: #C9DFD1;
   --color-rejected-fg: #8E2E29;  --color-rejected-bg: #FAEDEC;  --color-rejected-br: #E8CFCD;
 
-  /* A field in error needs a border that reads as invalid. The pale
-     `rejected-br` is the status-badge tone and barely registers. */
+  /* An invalid field needs a border that reads as invalid; the pale `rejected-br`
+     status-badge tone barely registers. */
   --color-error-border:     #C2564F;
   /* Warm tint behind a selected radio card. */
   --color-radio-selected:   #FDF6F2;
 
-  /* Dashed borders — the file dropzone and the "+ Create" tag affordance.
-     Neither `rule` (#E5E1DA) nor `rule-strong` (#D3CEC5) is an exact match
-     for the design's dashed-border colour; this is. */
+  /* Dashed borders — the file dropzone and the "+ Create" tag affordance. Neither
+     `rule` nor `rule-strong` matches the design's dashed colour. */
   --color-rule-dashed:      #C9C3B9;
 
-  /* File-type chip (the uploaded-PDF badge). Same literal values as
-     rejected-fg/bg/br today — the design system reuses that exact colour —
-     but kept as its own token family so retinting the Rejected status
-     colour later doesn't silently retint every file-type chip with it. */
+  /* File-type chip. Same values as rejected-fg/bg/br today, but its own family so
+     retinting the Rejected status does not retint every file chip. */
   --color-file-fg: #8E2E29; --color-file-bg: #FAEDEC; --color-file-br: #E8CFCD;
 
   --font-display: "Instrument Serif", Georgia, serif;
@@ -64,28 +52,19 @@
   --radius-control: 4px;
   --radius-card:    6px;
 
-  /* The design system defines exactly two elevations: flat (the default —
-     a 1px rule does the separating) and lifted, for overlays only (menu,
-     modal, toast). Neutral-warm (ink-tinted), never blue. */
+  /* Exactly two elevations: flat by default, and lifted for overlays only.
+     Ink-tinted, never blue. */
   --shadow-lifted: 0 1px 2px rgb(26 24 21 / 4%), 0 8px 24px rgb(26 24 21 / 6%);
 
-  /* Motion easings. Named for intent, not value, the same way the colour
-     tokens are: a hover eases out with `out-soft`, something that both
-     enters and exits (a toast, a modal) eases with `in-out-soft`.
-     `--ease-*` is a real Tailwind utility namespace, so these emit
-     `.ease-out-soft` / `.ease-in-out-soft` classes directly. */
+  /* Named for intent: a hover eases with `out-soft`, anything that enters and exits
+     with `in-out-soft`. `--ease-*` is a real Tailwind namespace, so these emit
+     utility classes directly. */
   --ease-out-soft:    cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in-out-soft: cubic-bezier(0.4, 0, 0.2, 1);
 
-  /* Motion durations, also named for intent: a hover is `instant`, a page
-     transition `quick`, a modal or toast entrance `moderate`. Three is
-     deliberate — a longer scale invites arbitrary choices. Unlike
-     `--ease-*`, `--duration-*` is NOT a Tailwind utility namespace: write
-     `duration-[var(--duration-quick)]`, never a bare `duration-quick`,
-     which silently compiles to nothing at all. Same failure shape as this
-     codebase's `<Foo>` vs `<ProposalFoo>` trap — see the
-     `ProposalReviewList` note in `pages/proposals/[id].vue` — just
-     quieter, because nothing errors. */
+  /* Three durations, named for intent. Unlike `--ease-*`, `--duration-*` is NOT a
+     Tailwind namespace: write `duration-[var(--duration-quick)]`, never a bare
+     `duration-quick`, which silently compiles to nothing. */
   --duration-instant:  120ms;
   --duration-quick:    180ms;
   --duration-moderate: 260ms;
@@ -101,13 +80,9 @@
   .t-label   { font-family: var(--font-sans);    font-size: 13px; line-height: 1.5;  font-weight: 500; }
   .t-eyebrow { font-family: var(--font-mono);    font-size: 12px; line-height: 1.4;  letter-spacing: 0.14em; text-transform: uppercase; }
 
-  /* Skeleton shimmer (design-system.html:414, 1.4s linear). One class, not
-     six utilities at the call site: the band only reads as a sweep if the
-     pseudo-element, the clip and the keyframe agree, and splitting that
-     across `after:*` arbitrary values hides the coupling. Resting position
-     is off-canvas to the left, so when the reduced-motion guard below cuts
-     the animation to one 0.01ms pass the bar degrades to the flat
-     `bg-sunken` block it was before — not a band frozen mid-sweep. */
+  /* One class, not six call-site utilities: the pseudo-element, the clip and the
+     keyframe have to agree. Resting off-canvas left, so the reduced-motion guard
+     below degrades it to a flat block rather than a band frozen mid-sweep. */
   .skeleton-bar { position: relative; overflow: hidden; }
   .skeleton-bar::after {
     content: ""; position: absolute; inset: 0; translate: -100% 0;
@@ -125,13 +100,9 @@ html, body { background: var(--color-paper); color: var(--color-ink); -webkit-fo
 /* Terracotta focus ring everywhere — the design system's only focus treatment. */
 :focus-visible { outline: 2px solid var(--color-terracotta); outline-offset: 2px; }
 
-/* One global guard rather than a `motion-reduce:` variant remembered at every
-   call site. Vestibular disorders make large motion genuinely painful, and
-   the failure mode of forgetting one guard is worse than the cost of a blunt
-   rule. `!important` because it must beat utilities on the elements
-   themselves. `*::backdrop` is listed because `*` does not match a
-   pseudo-element — the modal's backdrop fade would otherwise be the one
-   thing in the app this block never reaches. */
+/* One global guard rather than a `motion-reduce:` variant remembered per call site.
+   `!important` to beat utilities on the elements themselves, and `*::backdrop`
+   explicitly because `*` does not match a pseudo-element. */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after, *::backdrop {
     animation-duration: 0.01ms !important;

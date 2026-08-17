@@ -2,14 +2,10 @@
 const { toasts, dismiss } = useToast()
 </script>
 <template>
-  <!-- The live region is the <TransitionGroup>'s own `tag="div"`, so it is
-       mounted for the life of the app and a toast is a child insertion into
-       it — which is what makes the announcement immediate. The entry
-       animation only ever runs on an element that is already in the DOM and
-       in the accessibility tree (opacity, not visibility or v-if), so
-       nothing here delays what a screen reader says.
-       260ms / 6px matches the design's own `toastIn` keyframe
-       (design-system.html:21, :368). -->
+  <!-- The live region is the <TransitionGroup>'s own `tag="div"`, mounted for the life
+       of the app, so a toast is a child insertion and the announcement is immediate.
+       The entry animation uses opacity rather than visibility or v-if, so nothing here
+       delays what a screen reader says. -->
   <TransitionGroup
     tag="div" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2" role="status" aria-live="polite"
     enter-active-class="transition-[opacity,translate] duration-[var(--duration-moderate)] ease-in-out-soft"

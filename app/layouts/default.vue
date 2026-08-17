@@ -5,36 +5,26 @@ const auth = useAuthStore()
 // other code compares against (isSpeaker/isAdmin, :roles metas).
 const roleLabel = computed(() => (auth.role ? auth.role.charAt(0).toUpperCase() + auth.role.slice(1) : ''))
 
-// Four nav links share one treatment; inlined it read as four chances to
-// let one drift out of step with the others.
+// One treatment for four links, rather than four chances to let one drift.
 const navLink = 't-label text-ink-45 hover:text-ink transition-colors duration-[var(--duration-instant)] ease-out-soft'
 </script>
 
 <template>
   <div class="min-h-screen bg-paper">
-    <!-- The design's own header (app-screens.html:114-126) is a single
-         64px row at min-width:1240px — no mobile behaviour specified.
-         Below `md` it wraps to two rows instead: identity/actions stay on
-         row one (nav no longer fits alongside "Name · Role" + avatar +
-         "Sign out" without wrapping mid-word, as it did unfixed at 375px),
-         nav becomes its own full-width row underneath. The name/role text
-         is dropped below `md` — the avatar + nav labels already carry
-         enough identity, and there's no room left once nav and actions
-         both need a full-width row's worth of space. `md` (not `sm`)
-         because the admin role's 3-item nav plus a long name is still
-         tight at 640px. -->
+    <!-- The design specifies a single 64px row and no mobile behaviour. Below `md`
+         this wraps to two: identity and actions on row one, nav full-width beneath.
+         The name/role text drops there — the avatar and nav labels carry enough
+         identity, and nothing else fits. `md` not `sm`, because an admin's 3-item nav
+         plus a long name is still tight at 640px. -->
     <header class="border-b border-rule bg-card">
       <div class="max-w-[1440px] mx-auto px-4 sm:px-8 py-3 md:py-0 md:h-16 flex flex-wrap md:flex-nowrap items-center gap-x-6 gap-y-3">
         <NuxtLink to="/proposals" class="flex items-center gap-2.5">
           <span class="w-[9px] h-[9px] rounded-full bg-terracotta" aria-hidden="true" />
           <span class="t-eyebrow text-[11px] text-ink">Proposal Review</span>
         </NuxtLink>
-        <!-- app-screens.html:482 puts a "Connected" pill left of the bell.
-             Rendered only when the socket IS up: an "Offline" chip on every
-             deployment without Reverb would read as a broken app rather than
-             as an absent enhancement, and every screen works either way.
-             Below `md` it is dropped with the name/role text — the row is
-             already tight there. -->
+        <!-- Rendered only when the socket is up: an "Offline" chip on every
+             deployment without Reverb would read as a broken app rather than an
+             absent enhancement. Dropped below `md` with the name/role text. -->
         <span
           v-if="auth.user && $echo.state.value === 'connected'"
           class="hidden md:flex md:order-2 items-center gap-2 t-eyebrow text-[11px] text-approved-fg whitespace-nowrap"
@@ -43,9 +33,8 @@ const navLink = 't-label text-ink-45 hover:text-ink transition-colors duration-[
           Connected
         </span>
         <span v-if="auth.user" class="hidden md:inline md:order-2 t-label text-ink-45 whitespace-nowrap">{{ auth.user.name }} · {{ roleLabel }}</span>
-        <!-- Gated on auth.user, not isAuthenticated: logout() nulls the user
-             synchronously while this layout is still mounted, and the bell
-             fetches on mount. -->
+        <!-- Gated on auth.user, not isAuthenticated: logout() nulls the user while
+             this layout is still mounted, and the bell fetches on mount. -->
         <NotificationBell v-if="auth.user" class="order-1 md:order-2 ml-auto md:ml-0" />
         <UiAvatar v-if="auth.user" :initials="auth.user.initials" size="sm" class="order-1 md:order-3 md:ml-0" />
         <button
@@ -65,9 +54,8 @@ const navLink = 't-label text-ink-45 hover:text-ink transition-colors duration-[
 
     <UserVerificationBanner />
 
-    <!-- No named slots: app.vue already wraps every page in this layout, so a
-         page wrapping itself in <NuxtLayout> again would nest two of them.
-         Pages that need a sidebar lay out their own grid. -->
+    <!-- No named slots: app.vue already wraps every page, so a page using
+         <NuxtLayout> itself would nest two. Sidebars are the page's own grid. -->
     <main class="max-w-[1440px] mx-auto px-6 py-8"><slot /></main>
   </div>
 </template>

@@ -1,9 +1,6 @@
-// Status, tags and search all live in the URL query, not component state —
-// shareable, and the back button restores a filtered view for free. Both
-// `pages/proposals/index.vue` (the search box, the result line) and
-// `components/proposal/ProposalFilters.vue` (status + tag markup) read and
-// write this same URL-as-state, so this composable is the single owner of
-// that logic rather than each holding its own copy.
+// Status, tags and search live in the URL query, so a filtered view is shareable and
+// the back button restores it. Both the page and ProposalFilters.vue read and write
+// that state, so this composable owns the logic rather than each holding a copy.
 export function useProposalFilters() {
   const route = useRoute()
   const router = useRouter()

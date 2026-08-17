@@ -13,32 +13,28 @@ watch(() => route.query, load, { immediate: true })
 
 const hasFilters = computed(() => !!(route.query.search || route.query.tags || route.query.status))
 
-// Matches the design's own two-state result line exactly: `counts.all` is
-// unaffected by filtering (API.md), so it stands in for "the unfiltered
-// total" without a second request.
+// `counts.all` is unaffected by filtering, so it stands in for the unfiltered total
+// without a second request.
 const resultLine = computed(() => hasFilters.value
   ? `${store.meta.total} of ${store.counts.all} proposals`
   : `${store.counts.all} proposals · newest first`)
 
-// Announces only the count, and only after a real, user-driven change —
-// see useResultAnnouncer's own doc comment for the initial-load skip.
+// The count only, and only after a user-driven change — see useResultAnnouncer.
 const announcement = useResultAnnouncer(
   () => store.loading,
   () => store.error ? 'Could not load proposals.' : resultLine.value,
 )
 
-// Status/tags/search all live in the URL query — see useProposalFilters,
-// the single owner of that state shared with ProposalFilters.vue.
+// Status, tags and search live in the URL query — see useProposalFilters.
 const { activeTags, patchQuery, removeTag, resetAll } = useProposalFilters()
 const activeTagChips = computed(() => activeTags.value.map(slug => ({
   slug,
   name: tags.items.find(t => t.slug === slug)?.name ?? slug,
 })))
 
-// Local copy of the search box so typing feels instant; debounced 300ms
-// before it becomes a URL change (and therefore a request). Re-synced from
-// the URL so the box itself — not just the results — reflects the back
-// button, a Reset click, or a removed tag chip.
+// A local copy so typing feels instant, debounced before it becomes a URL change and
+// therefore a request. Re-synced from the URL so the box itself reflects the back
+// button, a Reset, or a removed tag chip.
 const search = ref(typeof route.query.search === 'string' ? route.query.search : '')
 let searchTimer: ReturnType<typeof setTimeout>
 watch(search, (v) => {
@@ -48,26 +44,18 @@ watch(search, (v) => {
 watch(() => route.query.search, (v) => {
   search.value = typeof v === 'string' ? v : ''
 })
-// A pending debounce firing after the user has already navigated away would
-// patch the *destination* route's query instead — patchQuery reads
-// route.query at call time, and router.push({ query }) keeps whatever path
-// is current — silently adding `?search=…` to wherever they went next and
-// breaking the back button. Clear it on unmount so leaving mid-type can't
-// leak a stray query param onto the next page.
+// A pending debounce firing after navigation would patch the destination route's
+// query instead, since patchQuery reads route.query at call time — leaking
+// `?search=…` onto the next page and breaking the back button.
 onUnmounted(() => clearTimeout(searchTimer))
 
-// Live updates, offered rather than applied — see the store's notePending()
-// for why this list is never patched in place.
+// Offered rather than applied — see the store's notePending().
 //
-// Subscribed by role, matching API.md §06's channel table: reviewers hear
-// about submissions and edits, admins about submissions, and everyone hears
-// about decisions on their OWN proposals, which is what changes a status badge
-// already on this page. A speaker is on no role channel and does not need one —
-// nobody else can create a proposal they can see.
+// Subscribed by role, per API.md §06: reviewers hear about submissions and edits,
+// admins about submissions, and everyone about decisions on their own proposals. A
+// speaker needs no role channel — nobody else can create a proposal they can see.
 //
-// All of this is a no-op with no socket: useRealtime() subscribes to nothing,
-// `pending` stays 0, the bar never renders, and the page is exactly what it
-// was before this feature existed.
+// All a no-op with no socket: `pending` stays 0 and the bar never renders.
 useRealtime(myChannels(), {
   'proposal.created': () => store.notePending(),
   'proposal.updated': () => store.notePending(),
@@ -87,7 +75,7 @@ useRealtime(myChannels(), {
     </aside>
 
     <div class="flex-1 min-w-0">
-      <!-- Announces only the count, and only after a real, user-driven
+      <!-- The count only, and only after a user-driven
            change — see useResultAnnouncer for the initial-load skip. -->
       <p aria-live="polite" class="sr-only">{{ announcement }}</p>
 
@@ -98,7 +86,7 @@ useRealtime(myChannels(), {
           <h1 class="t-section text-ink">Proposals</h1>
           <p v-if="!store.error" class="t-body text-ink-45 mt-1.5">{{ resultLine }}</p>
         </div>
-        <!-- items-end, not -center: UiInput renders a label above its field, making
+        <!-- items-end, not -center: UiInput's label sits above its field, making
              it taller than the buttons. Centering aligns against that full height and
              leaves the buttons floating above the field instead of level with it. -->
         <div class="flex items-end gap-3 flex-wrap">

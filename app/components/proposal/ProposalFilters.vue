@@ -1,11 +1,8 @@
 <script setup lang="ts">
-// Status and tag filters live in the URL query, not component state, so a
-// filtered view is shareable and the back button restores it. This
-// component owns only `status` and `tags` markup — `search` is read here
-// (for the query-string preview) but written by the page, whose header
-// holds the search box per the design's actual screen-02 layout.
-// useProposalFilters is the single owner of the URL-query read/write logic
-// itself, shared with pages/proposals/index.vue.
+// Filters live in the URL query so a filtered view is shareable and the back button
+// restores it. This component owns only the `status` and `tags` markup; `search` is
+// read here for the preview but written by the page. useProposalFilters owns the
+// read/write logic, shared with pages/proposals/index.vue.
 const tags = useTagsStore()
 const proposals = useProposalsStore()
 
@@ -22,9 +19,8 @@ const statusOptions = computed(() => [
   { value: 'rejected', label: 'Rejected', count: proposals.counts.rejected },
 ])
 
-// Mirrors the design's own live preview exactly: search, then tags, then
-// status, and never `page` — this box demonstrates how filters compose,
-// not pagination.
+// search, then tags, then status, and never `page` — this box demonstrates how
+// filters compose, not pagination.
 const queryString = computed(() => {
   const parts: string[] = []
   if (search.value) parts.push(`search=${encodeURIComponent(search.value)}`)
@@ -33,9 +29,8 @@ const queryString = computed(() => {
   return `/api/proposals${parts.length ? `?${parts.join('&')}` : ''}`
 })
 
-// The store itself dedupes concurrent calls — this component is mounted
-// twice at once (mobile disclosure + desktop sidebar), so both copies call
-// this on mount.
+// Mounted twice at once (mobile disclosure + desktop sidebar); the store dedupes
+// the concurrent calls.
 onMounted(() => { tags.fetch() })
 </script>
 
@@ -43,11 +38,8 @@ onMounted(() => { tags.fetch() })
   <div class="flex flex-col gap-9">
     <div>
       <p class="t-eyebrow text-ink-45 mb-4">Status</p>
-      <!-- Single-select, mutually exclusive — the same "which one am I
-           looking at" relationship as UiPagination's page buttons, which
-           this codebase already marks with aria-current rather than
-           aria-pressed. Not a real toggle: clicking the active one again
-           is a no-op, it never turns "off" on its own. -->
+      <!-- Single-select, so aria-current like UiPagination, not aria-pressed:
+           clicking the active one again is a no-op, it never turns off. -->
       <div class="flex flex-col gap-1">
         <button
           v-for="s in statusOptions" :key="s.value" type="button"
@@ -65,18 +57,14 @@ onMounted(() => { tags.fetch() })
 
     <div>
       <p class="t-eyebrow text-ink-45 mb-4">Tags</p>
-      <!-- `failed` used to be written by the store and read nowhere — a
-           failed GET /tags degraded silently to "no tag filter" with no way
-           for the user to know anything went wrong. Surface it with the
-           same retry idiom the page-level error states use. -->
+      <!-- Without this a failed GET /tags degrades silently to "no tag filter". Same
+           retry idiom as the page-level error states. -->
       <div v-if="tags.failed" class="flex items-center gap-3 flex-wrap">
         <p class="t-body text-ink-45">Couldn’t load tags.</p>
         <UiButton variant="secondary" size="sm" @click="tags.fetch()">Try again</UiButton>
       </div>
-      <!-- Multi-select, independent — each tag toggles on/off on its own
-           (OR semantics), which is exactly the toggle-button contract
-           aria-pressed describes, unlike the single-current Status list
-           above. -->
+      <!-- Multi-select with OR semantics, which is the toggle-button contract
+           aria-pressed describes, unlike the Status list above. -->
       <div v-else class="flex flex-wrap gap-2">
         <button
           v-for="t in tags.items" :key="t.id" type="button"
